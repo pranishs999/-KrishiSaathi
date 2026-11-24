@@ -8,8 +8,11 @@
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
 .DS_Store
+/build
 /captures
 .externalNativeBuild
 .cxx
 local.properties
 .supabase.pass
+krishi_overnight.py
+KrishiSaathi_ROADMAP.md
