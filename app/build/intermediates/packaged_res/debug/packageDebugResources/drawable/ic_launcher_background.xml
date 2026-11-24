@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Deep Agricultural Field Gradient Background -->
+    <path
+        android:pathData="M0,0h108v108h-108z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="54"
+                android:startY="0"
+                android:endX="54"
+                android:endY="108"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#1B5E20" />
+                <item android:offset="0.7" android:color="#2E7D32" />
+                <item android:offset="1.0" android:color="#1B4D20" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Subtle Circular Horizon Glow -->
+    <path
+        android:pathData="M54,54m-42,0a42,42 0,1,1 84,0a42,42 0,1,1 -84,0"
+        android:strokeWidth="1.5"
+        android:strokeColor="#25FFFFFF"
+        android:fillColor="#0DFFFFFF" />
+
+    <!-- Soil Base Arc -->
+    <path
+        android:pathData="M18,92 Q54,80 90,92 L90,108 L18,108 Z"
+        android:fillColor="#22000000" />
+</vector>

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Central Golden Sun / Halo -->
+    <path
+        android:pathData="M54,42m-16,0a16,16 0,1,1 32,0a16,16 0,1,1 -32,0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="54"
+                android:startY="26"
+                android:endX="54"
+                android:endY="58"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#FFE082" />
+                <item android:offset="1.0" android:color="#FFB300" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Golden Grain Spikes (Left & Right) -->
+    <!-- Left Wheat Ear -->
+    <path
+        android:pathData="M44,38 C42,35 37,36 38,40 C39,43 43,41 44,38 Z"
+        android:fillColor="#FFD54F" />
+    <path
+        android:pathData="M42,46 C39,43 35,45 36,49 C38,52 42,49 42,46 Z"
+        android:fillColor="#FFCA28" />
+
+    <!-- Right Wheat Ear -->
+    <path
+        android:pathData="M64,38 C66,35 71,36 70,40 C69,43 65,41 64,38 Z"
+        android:fillColor="#FFD54F" />
+    <path
+        android:pathData="M66,46 C69,43 73,45 72,49 C70,52 66,49 66,46 Z"
+        android:fillColor="#FFCA28" />
+
+    <!-- Central Sprout Stem -->
+    <path
+        android:pathData="M52.5,76 C52.5,60 53,44 54,32 C55,44 55.5,60 55.5,76 Z"
+        android:fillColor="#A5D6A7" />
+
+    <!-- Left Sprout Leaf (Vibrant Green) -->
+    <path
+        android:pathData="M53,60 C40,58 32,46 34,36 C45,36 52,48 53,60 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="33"
+                android:startY="36"
+                android:endX="53"
+                android:endY="60"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#81C784" />
+                <item android:offset="1.0" android:color="#4CAF50" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Right Sprout Leaf (Deep Vital Green) -->
+    <path
+        android:pathData="M55,60 C68,58 76,46 74,36 C63,36 56,48 55,60 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="55"
+                android:startY="36"
+                android:endX="76"
+                android:endY="60"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#66BB6A" />
+                <item android:offset="1.0" android:color="#388E3C" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Young Center Shoot (Budding Leaf) -->
+    <path
+        android:pathData="M54,42 C51,35 52,28 54,24 C56,28 57,35 54,42 Z"
+        android:fillColor="#C8E6C9" />
+
+    <!-- Rich Soil Mound / Terrace Base -->
+    <path
+        android:pathData="M34,76 C42,72 66,72 74,76 C76,79 72,82 54,82 C36,82 32,79 34,76 Z"
+        android:fillColor="#6D4C41" />
+    <path
+        android:pathData="M38,77 C44,74 64,74 70,77 C72,79 68,81 54,81 C40,81 36,79 38,77 Z"
+        android:fillColor="#8D6E63" />
+</vector>

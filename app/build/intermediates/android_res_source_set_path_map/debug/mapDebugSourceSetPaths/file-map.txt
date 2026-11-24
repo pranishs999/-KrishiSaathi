@@ -1,0 +1,8 @@
+com.krishisaathi.app-pngs-0 /home/pranish/AndroidStudioProjects/KrishiSaathi/app/build/generated/res/pngs/debug
+com.krishisaathi.app-updated_navigation_xml-1 /home/pranish/AndroidStudioProjects/KrishiSaathi/app/build/generated/updated_navigation_xml/debug
+com.krishisaathi.app-packageDebugResources-2 /home/pranish/AndroidStudioProjects/KrishiSaathi/app/build/intermediates/incremental/debug/packageDebugResources/merged.dir
+com.krishisaathi.app-packageDebugResources-3 /home/pranish/AndroidStudioProjects/KrishiSaathi/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir
+com.krishisaathi.app-debug-4 /home/pranish/AndroidStudioProjects/KrishiSaathi/app/build/intermediates/merged_res/debug/mergeDebugResources
+com.krishisaathi.app-debug-5 /home/pranish/AndroidStudioProjects/KrishiSaathi/app/src/debug/res
+com.krishisaathi.app-main-6 /home/pranish/AndroidStudioProjects/KrishiSaathi/app/src/main/res
+gradleHome-0 /home/pranish/.gradle
