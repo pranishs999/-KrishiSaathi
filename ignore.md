@@ -175,3 +175,5 @@ readme
 **One final recommendation:** Don't install all 14 skills simultaneously without reviewing their `SKILL.md` files, dependencies and licenses. Start with `android-dev`, `ui-skills`, `postgres-best-practices` and `database-security`. Those four cover the most important parts of Krishi Saathi.
 
 Also, keep your existing `AGENT_RULES.md`, `CONTEXT.md` and `ARCHITECTURE.md` as the project's source of truth.
+
+cd /home/pranish/AndroidStudioProjects/KrishiSaathi && ./gradlew assembleDebug --no-configuration-cache

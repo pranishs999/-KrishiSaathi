@@ -1,7 +1,9 @@
 package com.krishisaathi.app.ui.screens.home
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,7 +11,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
@@ -19,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -29,6 +35,7 @@ fun HomeScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -38,23 +45,34 @@ fun HomeScreen(
             Text(
                 text = "नमस्ते, किसान साथी!",
                 style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold
+                color = MaterialTheme.colorScheme.onBackground,
+                fontWeight = FontWeight.ExtraBold
             )
             Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "मकवानपुर जिल्ला (हेटौंडा तथा पहाडी क्षेत्र)",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.secondary
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = "मकवानपुर जिल्ला (हेटौंडा तथा पहाडी क्षेत्र)",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
         }
 
-        // Offline Status Card
+        // Offline Status Highlight Card
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.primaryContainer
             ),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
             shape = RoundedCornerShape(12.dp)
         ) {
             Column(
@@ -70,7 +88,8 @@ fun HomeScreen(
                 Text(
                     text = "इन्टरनेट नहुँदा पनि सम्पूर्ण बाली, कीरा-रोग र मलखाद सिफारिस जानकारी सहजै हेर्न सकिन्छ।",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.Medium
                 )
             }
         }
@@ -81,36 +100,49 @@ fun HomeScreen(
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surface
             ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
             shape = RoundedCornerShape(12.dp)
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Text(
                     text = "मुख्य सेवाहरू:",
                     style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Bold
                 )
-                Text(
-                    text = "• प्रमाणित बाली उत्पादन निर्देशिका (धान, मकै, तरकारी)",
-                    style = MaterialTheme.typography.bodyLarge
+
+                val services = listOf(
+                    "प्रमाणित बाली उत्पादन निर्देशिका (धान, मकै, तरकारी)",
+                    "कीरा तथा रोगको जैविक र सुरक्षित रासायनिक नियन्त्रण",
+                    "रोपनी र बिघा अनुसार ठ्याक्कै मलखाद क्यालकुलेटर",
+                    "विषादीको सुरक्षित पर्खने अवधि (PHI) र विषाक्तता संकेत"
                 )
-                Text(
-                    text = "• कीरा तथा रोगको जैविक र सुरक्षित रासायनिक नियन्त्रण",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Text(
-                    text = "• रोपनी र बिघा अनुसार ठ्याक्कै मलखाद क्यालकुलेटर",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Text(
-                    text = "• विषादीको सुरक्षित पर्खने अवधि (PHI) र विषाक्तता संकेत",
-                    style = MaterialTheme.typography.bodyLarge
-                )
+
+                services.forEach { service ->
+                    Row(
+                        verticalAlignment = Alignment.Top,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "✔",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = service,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
             }
         }
     }
 }
+
 

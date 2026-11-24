@@ -36,20 +36,23 @@ interface CropDao {
 
     /**
      * Background sync insertion (upsert). Used by repository during cloud sync.
+     * Can be invoked within Dispatchers.IO.
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun upsertCrops(crops: List<CropEntity>)
+    fun upsertCrops(crops: List<CropEntity>): List<Long>
 
     /**
      * Background sync single crop insertion.
+     * Can be invoked within Dispatchers.IO.
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun upsertCrop(crop: CropEntity)
+    fun upsertCrop(crop: CropEntity): Long
 
     /**
      * Background sync cache purge. Returns the count of deleted rows.
+     * Can be invoked within Dispatchers.IO.
      */
     @Query("DELETE FROM crops")
-    suspend fun clearAllCrops(): Int
+    fun clearAllCrops(): Int
 }
 
