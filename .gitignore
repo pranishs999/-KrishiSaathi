@@ -18,3 +18,7 @@ krishi_overnight.py
 KrishiSaathi_ROADMAP.md
 ignore.md
 app/build
+venv
+.agents
+.antigravity-skill-manager
+.antigravity
