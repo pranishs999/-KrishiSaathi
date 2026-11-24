@@ -16,3 +16,5 @@ local.properties
 .supabase.pass
 krishi_overnight.py
 KrishiSaathi_ROADMAP.md
+ignore.md
+app/build
