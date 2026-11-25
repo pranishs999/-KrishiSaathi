@@ -34,7 +34,7 @@ import kotlinx.coroutines.delay
 /**
  * Clean, calm boot screen adhering strictly to Bakaiya Krishi Saathi Design System:
  * - Natural Ivory light mode canvas (no gradients, no neon, no borders, no excessive animation)
- * - Direct transition into the agricultural knowledge portal without authentication gates
+ * - Coordinates smoothly with persistent first-launch registration check
  */
 @Composable
 fun SplashScreen(

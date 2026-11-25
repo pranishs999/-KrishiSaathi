@@ -21,6 +21,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -38,7 +40,7 @@ import com.krishisaathi.app.ui.theme.NaturalIvory
  * - Natural Ivory navigation canvas
  * - Deep Charcoal selected state and Muted Green Grey unselected state
  * - Divider Sage structural hairlines
- * - Exactly 3 bottom navigation tabs: गृहपृष्ठ, बालीहरू, किसान हेल्पलाइन
+ * - 4 bottom navigation tabs: गृहपृष्ठ, बालीहरू, किसान हेल्पलाइन, मेरो विवरण
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,7 +55,7 @@ fun MainScaffold(
     val showChromeBars = currentRoute == BottomNavItem.Home.route ||
             currentRoute?.startsWith("crops") == true ||
             currentRoute == BottomNavItem.Helpline.route ||
-            currentRoute == BottomNavItem.FarmRecords.route
+            currentRoute == BottomNavItem.Profile.route
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -138,8 +140,11 @@ fun MainScaffold(
                                 label = {
                                     Text(
                                         text = item.title,
-                                        style = MaterialTheme.typography.labelMedium,
-                                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                                        textAlign = TextAlign.Center,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 },
                                 colors = NavigationBarItemDefaults.colors(

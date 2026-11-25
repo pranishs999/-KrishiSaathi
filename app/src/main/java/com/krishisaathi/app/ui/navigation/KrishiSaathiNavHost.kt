@@ -18,11 +18,9 @@ import com.krishisaathi.app.ui.screens.crops.CropDetailViewModel
 import com.krishisaathi.app.ui.screens.crops.CropsScreen
 import com.krishisaathi.app.ui.screens.crops.CropsViewModel
 import com.krishisaathi.app.ui.screens.helpline.HelplineScreen
-import com.krishisaathi.app.ui.screens.helpline.HelplineViewModel
 import com.krishisaathi.app.ui.screens.home.HomeScreen
 import com.krishisaathi.app.ui.screens.home.HomeViewModel
-import com.krishisaathi.app.ui.screens.records.FarmRecordsScreen
-import com.krishisaathi.app.ui.screens.records.FarmRecordsViewModel
+import com.krishisaathi.app.ui.screens.profile.ProfileScreen
 import com.krishisaathi.app.ui.screens.videos.DownloadedVideosScreen
 import com.krishisaathi.app.ui.screens.videos.DownloadedVideosViewModel
 import com.krishisaathi.app.ui.screens.videos.VideoPlayerScreen
@@ -63,27 +61,9 @@ fun KrishiSaathiNavHost(
                         launchSingleTop = true
                     }
                 },
-                onNavigateToHelpline = {
-                    navController.navigate(BottomNavItem.Helpline.route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
-                        }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                },
                 onNavigateToDownloadedVideos = {
                     navController.navigate("downloaded_videos") {
                         launchSingleTop = true
-                    }
-                },
-                onNavigateToFarmRecords = {
-                    navController.navigate(BottomNavItem.FarmRecords.route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
-                        }
-                        launchSingleTop = true
-                        restoreState = true
                     }
                 },
                 onNavigateToYouTubeChannels = {
@@ -120,17 +100,11 @@ fun KrishiSaathiNavHost(
         }
 
         composable(BottomNavItem.Helpline.route) {
-            val helplineViewModel: HelplineViewModel = viewModel(
-                factory = HelplineViewModel.factory(appContainer)
-            )
-            HelplineScreen(viewModel = helplineViewModel)
+            HelplineScreen()
         }
 
-        composable(BottomNavItem.FarmRecords.route) {
-            val farmRecordsViewModel: FarmRecordsViewModel = viewModel(
-                factory = FarmRecordsViewModel.factory(appContainer)
-            )
-            FarmRecordsScreen(viewModel = farmRecordsViewModel)
+        composable(BottomNavItem.Profile.route) {
+            ProfileScreen()
         }
 
         composable(

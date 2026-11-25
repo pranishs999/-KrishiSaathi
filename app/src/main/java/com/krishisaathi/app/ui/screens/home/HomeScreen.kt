@@ -14,27 +14,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.Agriculture
 import androidx.compose.material.icons.outlined.BrokenImage
 import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.outlined.DownloadDone
 import androidx.compose.material.icons.outlined.Eco
 import androidx.compose.material.icons.outlined.Grass
 import androidx.compose.material.icons.outlined.Park
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Spa
 import androidx.compose.material.icons.outlined.Storefront
 import androidx.compose.material.icons.outlined.WaterDrop
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -55,7 +49,6 @@ import androidx.compose.ui.unit.dp
 import coil.compose.SubcomposeAsyncImage
 import com.krishisaathi.app.domain.model.BakaiyaCrop
 import com.krishisaathi.app.domain.model.CropCategory
-import com.krishisaathi.app.ui.screens.dialogs.RegistrationDialog
 import com.krishisaathi.app.ui.theme.DeepCharcoal
 import com.krishisaathi.app.ui.theme.DividerSage
 import com.krishisaathi.app.ui.theme.ForestGreen
@@ -71,9 +64,7 @@ fun HomeScreen(
     viewModel: HomeViewModel,
     onNavigateToCrops: (String?) -> Unit,
     onNavigateToCropDetail: (String) -> Unit,
-    onNavigateToHelpline: () -> Unit,
     onNavigateToDownloadedVideos: () -> Unit,
-    onNavigateToFarmRecords: () -> Unit,
     onNavigateToYouTubeChannels: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -130,87 +121,6 @@ fun HomeScreen(
             )
         }
 
-        // Optional Farmer Profile Card (Section 11 - Non-blocking)
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = LightGreen),
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(44.dp)
-                            .clip(CircleShape)
-                            .background(ForestGreen),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Person,
-                            contentDescription = "किसान प्रोफाइल",
-                            tint = NaturalIvory,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column {
-                        if (state.farmerProfile != null) {
-                            Text(
-                                text = "नमस्ते, ${state.farmerProfile!!.fullName}",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = DeepCharcoal
-                            )
-                            Text(
-                                text = "बकैया वडा नं. ${state.farmerProfile!!.wardNumber} • ${state.farmerProfile!!.phoneNumber}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MutedGreenGrey
-                            )
-                        } else {
-                            Text(
-                                text = "ऐच्छिक किसान विवरण",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = DeepCharcoal
-                            )
-                            Text(
-                                text = "विना लगइन सबै जानकारी पढ्न सकिन्छ",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MutedGreenGrey
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Button(
-                    onClick = viewModel::openRegistrationDialog,
-                    shape = RoundedCornerShape(50),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = ForestGreen,
-                        contentColor = NaturalIvory
-                    ),
-                    modifier = Modifier.height(48.dp)
-                ) {
-                    Text(
-                        text = if (state.farmerProfile == null) "दर्ता" else "परिमार्जन",
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                }
-            }
-        }
-
         // Crop Categories Grid (Section 6.2 - No invented counts)
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(
@@ -257,43 +167,11 @@ fun HomeScreen(
             }
         }
 
-        // Shortcuts: Farm Records, Helpline, Downloaded Videos & YouTube Channels
+        // Shortcuts: Downloaded Videos & YouTube Channels
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Card(
-                modifier = Modifier
-                    .weight(1f)
-                    .clickable(onClick = onNavigateToFarmRecords),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = LightGreen),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.AccountBalanceWallet,
-                        contentDescription = "फार्म हिसाब",
-                        tint = ForestGreen,
-                        modifier = Modifier.size(28.dp)
-                    )
-                    Text(
-                        text = "फार्म हिसाब",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = DeepCharcoal
-                    )
-                    Text(
-                        text = "आम्दानी खर्च लेखा",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MutedGreenGrey
-                    )
-                }
-            }
-
             Card(
                 modifier = Modifier
                     .weight(1f)
@@ -325,12 +203,7 @@ fun HomeScreen(
                     )
                 }
             }
-        }
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
             Card(
                 modifier = Modifier
                     .weight(1f)
@@ -357,38 +230,6 @@ fun HomeScreen(
                     )
                     Text(
                         text = "प्रविधि च्यानलहरू",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MutedGreenGrey
-                    )
-                }
-            }
-
-            Card(
-                modifier = Modifier
-                    .weight(1f)
-                    .clickable(onClick = onNavigateToHelpline),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = LightGreen),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Call,
-                        contentDescription = "किसान हेल्पलाइन",
-                        tint = ForestGreen,
-                        modifier = Modifier.size(28.dp)
-                    )
-                    Text(
-                        text = "किसान हेल्पलाइन",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = DeepCharcoal
-                    )
-                    Text(
-                        text = "कृषि शाखा सम्पर्क",
                         style = MaterialTheme.typography.bodySmall,
                         color = MutedGreenGrey
                     )
@@ -469,18 +310,6 @@ fun HomeScreen(
                 )
             }
         }
-    }
-
-    if (state.isRegistrationDialogOpen) {
-        RegistrationDialog(
-            currentName = state.farmerProfile?.fullName ?: "",
-            currentWard = state.farmerProfile?.wardNumber ?: 1,
-            currentPhone = state.farmerProfile?.phoneNumber ?: "",
-            isExistingProfile = state.farmerProfile != null,
-            onDismiss = viewModel::closeRegistrationDialog,
-            onConfirm = viewModel::registerFarmer,
-            onClearProfile = viewModel::clearRegistration
-        )
     }
 }
 

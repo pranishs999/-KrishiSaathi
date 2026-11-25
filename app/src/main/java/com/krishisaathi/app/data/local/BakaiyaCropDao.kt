@@ -81,32 +81,16 @@ interface BakaiyaCropDao {
     @Query("DELETE FROM helpline_contacts")
     fun clearHelplineContacts(): Int
 
-    // Optional Farmer Profile
+    // Farmer Registration
     @Query("SELECT * FROM farmer_registration LIMIT 1")
     fun getFarmerRegistration(): Flow<FarmerRegistrationEntity?>
+
+    @Query("SELECT * FROM farmer_registration LIMIT 1")
+    fun findFarmerRegistrationSync(): FarmerRegistrationEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun saveFarmerRegistration(registration: FarmerRegistrationEntity): Long
 
     @Query("DELETE FROM farmer_registration")
     fun clearFarmerRegistration(): Int
-
-    // Farm Records (फार्मको हिसाब)
-    @Query("SELECT * FROM farm_records ORDER BY date_millis DESC")
-    fun getAllFarmRecords(): Flow<List<FarmRecordEntity>>
-
-    @Query("SELECT * FROM farm_records WHERE type = :type ORDER BY date_millis DESC")
-    fun getFarmRecordsByType(type: String): Flow<List<FarmRecordEntity>>
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertFarmRecord(record: FarmRecordEntity): Long
-
-    @Query("DELETE FROM farm_records WHERE id = :recordId")
-    fun deleteFarmRecord(recordId: String): Int
-
-    @Query("SELECT COALESCE(SUM(amount), 0.0) FROM farm_records WHERE type = 'income'")
-    fun getTotalIncome(): Flow<Double>
-
-    @Query("SELECT COALESCE(SUM(amount), 0.0) FROM farm_records WHERE type = 'expense'")
-    fun getTotalExpense(): Flow<Double>
 }

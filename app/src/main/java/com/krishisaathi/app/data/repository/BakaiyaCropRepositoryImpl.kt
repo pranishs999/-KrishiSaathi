@@ -1,21 +1,20 @@
 package com.krishisaathi.app.data.repository
 
 import com.krishisaathi.app.core.common.DispatcherProvider
+import com.krishisaathi.app.core.util.ValidationUtils
 import com.krishisaathi.app.data.local.BakaiyaCropDao
 import com.krishisaathi.app.data.local.BakaiyaCropEntity
 import com.krishisaathi.app.data.local.CategoryEntity
 import com.krishisaathi.app.data.local.CropImageEntity
 import com.krishisaathi.app.data.local.EducationalVideoEntity
-import com.krishisaathi.app.data.local.FarmRecordEntity
 import com.krishisaathi.app.data.local.FarmerRegistrationEntity
 import com.krishisaathi.app.data.local.HelplineContactEntity
 import com.krishisaathi.app.data.local.KrishiSaathiDatabase
 import com.krishisaathi.app.domain.model.BakaiyaCrop
+import com.krishisaathi.app.domain.model.BakaiyaMunicipality
 import com.krishisaathi.app.domain.model.CropCategory
 import com.krishisaathi.app.domain.model.CropImage
 import com.krishisaathi.app.domain.model.EducationalVideo
-import com.krishisaathi.app.domain.model.FarmRecord
-import com.krishisaathi.app.domain.model.FarmRecordType
 import com.krishisaathi.app.domain.model.FarmerRegistration
 import com.krishisaathi.app.domain.model.HelplineContact
 import com.krishisaathi.app.domain.repository.BakaiyaCropRepository
@@ -105,16 +104,42 @@ class BakaiyaCropRepositoryImpl(
         return dao.getFarmerRegistration().map { it?.toDomain() }.flowOn(dispatchers.io)
     }
 
-    override suspend fun saveFarmerRegistration(name: String, ward: Int, phone: String): Result<Unit> =
+    override suspend fun saveFarmerRegistration(
+        name: String,
+        ward: Int,
+        phone: String,
+        municipality: String
+    ): Result<Unit> =
         withContext(dispatchers.io) {
             try {
-                dao.saveFarmerRegistration(
+                val trimmedName = name.trim()
+                val trimmedMunicipality = municipality.trim().ifBlank { BakaiyaMunicipality.DEFAULT_NAME }
+                val normalizedPhone = ValidationUtils.normalizeNepalMobileNumber(phone)
+
+                if (trimmedName.isEmpty() ||
+                    !ValidationUtils.isValidBakaiyaWard(ward) ||
+                    !ValidationUtils.isValidNepalMobileNumber(normalizedPhone)
+                ) {
+                    return@withContext Result.failure(
+                        IllegalArgumentException("कृपया मान्य नाम, वडा नम्बर र १० अंकको मोबाइल नम्बर राख्नुहोस्।")
+                    )
+                }
+
+                val insertedRowId = dao.saveFarmerRegistration(
                     FarmerRegistrationEntity(
-                        fullName = name.trim(),
+                        fullName = trimmedName,
+                        municipality = trimmedMunicipality,
                         wardNumber = ward,
-                        phoneNumber = phone.trim()
+                        phoneNumber = normalizedPhone,
+                        registeredAt = System.currentTimeMillis()
                     )
                 )
+                val persisted = dao.findFarmerRegistrationSync()
+                if (insertedRowId <= 0L || persisted == null) {
+                    return@withContext Result.failure(
+                        IllegalStateException("किसान विवरण डेटाबेसमा सुरक्षित हुन सकेन।")
+                    )
+                }
                 Result.success(Unit)
             } catch (e: Exception) {
                 Result.failure(e)
@@ -172,58 +197,6 @@ class BakaiyaCropRepositoryImpl(
     override suspend fun syncRemoteContent(): Result<Unit> = withContext(dispatchers.io) {
         try {
             KrishiSaathiDatabase.seedDatabase(dao)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    override fun getAllFarmRecords(): Flow<List<FarmRecord>> {
-        return dao.getAllFarmRecords().map { list ->
-            list.map { it.toDomain() }
-        }.flowOn(dispatchers.io)
-    }
-
-    override fun getFarmRecordsByType(type: FarmRecordType): Flow<List<FarmRecord>> {
-        return dao.getFarmRecordsByType(type.value).map { list ->
-            list.map { it.toDomain() }
-        }.flowOn(dispatchers.io)
-    }
-
-    override fun getTotalIncome(): Flow<Double> {
-        return dao.getTotalIncome().flowOn(dispatchers.io)
-    }
-
-    override fun getTotalExpense(): Flow<Double> {
-        return dao.getTotalExpense().flowOn(dispatchers.io)
-    }
-
-    override suspend fun addFarmRecord(record: FarmRecord): Result<Unit> = withContext(dispatchers.io) {
-        try {
-            if (record.categoryNe.isBlank() || record.amount <= 0.0) {
-                return@withContext Result.failure(IllegalArgumentException("वर्ग र रकम मान्य हुनुपर्दछ।"))
-            }
-            dao.insertFarmRecord(
-                FarmRecordEntity(
-                    id = record.id,
-                    type = record.type.value,
-                    categoryNe = record.categoryNe.trim(),
-                    amount = record.amount,
-                    descriptionNe = record.descriptionNe.trim(),
-                    cropNameNe = record.cropNameNe?.trim()?.ifBlank { null },
-                    dateMillis = record.dateMillis,
-                    createdAt = record.createdAt
-                )
-            )
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    override suspend fun deleteFarmRecord(recordId: String): Result<Unit> = withContext(dispatchers.io) {
-        try {
-            dao.deleteFarmRecord(recordId)
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -301,16 +274,11 @@ class BakaiyaCropRepositoryImpl(
         HelplineContact(id, nameNe, designationNe, wardNe, wardNumber, mobileNumber, email, isVerified)
 
     private fun FarmerRegistrationEntity.toDomain() =
-        FarmerRegistration(fullName, wardNumber, phoneNumber)
-
-    private fun FarmRecordEntity.toDomain() = FarmRecord(
-        id = id,
-        type = FarmRecordType.fromValue(type),
-        categoryNe = categoryNe,
-        amount = amount,
-        descriptionNe = descriptionNe,
-        cropNameNe = cropNameNe,
-        dateMillis = dateMillis,
-        createdAt = createdAt
-    )
+        FarmerRegistration(
+            fullName = fullName,
+            municipality = municipality,
+            wardNumber = wardNumber,
+            phoneNumber = phoneNumber,
+            registeredAt = registeredAt
+        )
 }

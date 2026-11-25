@@ -1,32 +1,31 @@
 # Testing Strategy — Bakaiya Krishi Saathi
 
 ## 1. JVM Unit Tests (`app/src/test/java/com/krishisaathi/app/`)
-Run via `./gradlew testDebugUnitTest`:
+Run via `./gradlew test`:
 
 - **`BakaiyaValidationTest.kt`**:
-  - Nepal 10-digit mobile (`98`/`97`/`96`) and landline (`0XX`) validation.
+  - Nepal mobile (`98`/`97`/`96`, `+977` prefix stripping, Devanagari numerals ०–९) and landline validation.
+  - Ward number (`1..12`) validation.
   - Strict HTTPS YouTube watch URL (`isValidYouTubeUrl`) and channel URL (`isValidYouTubeChannelUrl`) validation.
-  - Download permission & HTTPS enforcement (`isAuthorizedDownloadUrl`).
-  - Human-readable file size formatting (`formatFileSize`).
+  - Download permission & HTTPS enforcement (`isAuthorizedDownloadUrl`) and file size formatting.
+- **`RegistrationFlowTest.kt`**:
+  - Verifies empty name, empty ward, and invalid phone validation failures without modifying Room or DataStore.
+  - Verifies DataStore `registration_completed` is NEVER set when database persistence fails.
+  - Verifies DataStore write failure surfaces `PersistenceFailed`.
+  - Verifies valid submission persists both Room (`fullName`, `municipality`, `wardNumber`, `phoneNumber`) and DataStore and transitions `AppEntryState` from `NeedsRegistration` to `Registered`.
+  - Verifies safe recovery when DataStore throws `IOException`.
 - **`BakaiyaSeedDataIntegrityTest.kt`**:
-  - Verifies all 6 Nepali crop categories exist.
-  - Ensures every crop maps to a valid category, carries non-blank source attribution, and has non-inverted temperature/pH bounds.
-  - Enforces strict separation between non-downloadable YouTube videos (`downloadPermission = false`) and authorized sample offline downloads.
-  - Validates helpline phone numbers and `isVerified = true`.
-  - Validates `VerifiedYouTubeChannels.channels` handles (`@...`) and HTTPS channel URLs.
+  - Verifies all 6 Nepali crop categories, source attribution, environmental bounds, YouTube/download strict separation, and verified channel handles/URLs.
 - **`BakaiyaCropRepositoryTest.kt`**:
   - Uses `FakeBakaiyaCropDao` and JUnit `TemporaryFolder`.
-  - Verifies seeding/sync, Nepali + English crop search, category filtering.
-  - Verifies offline video physical file verification and deletion cleanup.
-  - Verifies optional farmer registration persistence and clearing without auth.
-  - Verifies `FarmRecord` validation, income/expense totals, filtering, and deletion.
+  - Verifies seeding/sync, Nepali + English crop search, category filtering, offline video physical file verification/deletion, and farmer registration validation/persistence.
 - **`AppConfigTest.kt` & `CoreArchitectureTest.kt`**:
-  - Verifies root package entry points (`KrishiSaathiApp`, `MainActivity`), `DefaultDispatcherProvider`, and `AppResult` sealed states.
+  - Verifies root package entry points, `DefaultDispatcherProvider`, and `AppResult`.
 
 ## 2. Instrumented UI Tests (`app/src/androidTest/java/com/krishisaathi/app/`)
-Compiled via `./gradlew assembleDebugAndroidTest` (requires connected Android device/emulator to execute `./gradlew connectedDebugAndroidTest`):
+Compiled via `./gradlew assembleDebugAndroidTest` (executed with `./gradlew connectedDebugAndroidTest` on a device/emulator):
 
 - **`BakaiyaUiTest.kt`**:
-  - Verifies all 4 bottom navigation tabs (`गृहपृष्ठ`, `बालीहरू`, `फार्म हिसाब`, `हेल्पलाइन`) and transitions.
-  - Verifies Nepali crop search (`धान`), opening `CropDetailScreen`, scrolling to environmental metrics & video sections, and back navigation.
-  - Verifies Home shortcut opens `YouTubeChannelsScreen` (`कृषि युट्यूब च्यानलहरू`) and navigates back cleanly.
+  - Verifies first-launch displays `RegistrationScreen`, blocks Home before registration, validates empty inputs, completes registration, navigates to Home, and survives `ActivityScenario.recreate()`.
+  - Verifies registered launch opens Home directly, displays 4 navigation tabs (`गृहपृष्ठ`, `बालीहरू`, `किसान हेल्पलाइन`, `मेरो विवरण`) without `फार्म हिसाब`, and opens both Under Construction screens.
+  - Verifies Nepali crop search (`धान`), `CropDetailScreen` 22-section scroll, and `YouTubeChannelsScreen` navigation remain intact.

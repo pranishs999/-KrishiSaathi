@@ -8,32 +8,35 @@
 
 ```
 UI Layer (Jetpack Compose)
-  ├── MainScaffold + KrishiSaathiNavHost
-  ├── HomeScreen (Categories, Seasonal Crops, Profile Dialog, Quick Shortcuts)
+  ├── MainActivity + MainViewModel (First-launch registration gate)
+  ├── RegistrationScreen + RegistrationViewModel (SavedStateHandle form)
+  ├── MainScaffold + KrishiSaathiNavHost (4-tab navigation)
+  ├── HomeScreen (Categories, Seasonal Crops, Video Shortcuts)
   ├── CropsScreen (Nepali/English Search, Category Filter)
   ├── CropDetailScreen (22 Sections, Gallery, Video Playlists, Offline Download)
-  ├── FarmRecordsScreen (Income/Expense Ledger + Bookkeeping Guide)
+  ├── HelplineScreen -> UnderConstructionScreen ("निर्माणाधीन")
+  ├── ProfileScreen -> UnderConstructionScreen ("निर्माणाधीन")
   ├── YouTubeChannelsScreen (Verified Nepali Agri Channels)
-  ├── HelplineScreen (Ward Filters + ACTION_DIAL)
   ├── DownloadedVideosScreen + VideoPlayerScreen (Media3 ExoPlayer)
   └── SplashScreen (Calm Light Mode Boot Transition)
          │
          ▼
 Domain Layer
+  ├── Coordinator: FarmerRegistrationCoordinator (Validation + atomic Room/DataStore save)
   ├── Models: BakaiyaCrop, CropCategory, CropImage, EducationalVideo,
-  │           HelplineContact, FarmerRegistration, FarmRecord, YouTubeChannel
+  │           HelplineContact, FarmerRegistration, BakaiyaMunicipality, YouTubeChannel
   └── Repository Interface: BakaiyaCropRepository
          │
          ▼
 Data & Media Layer
-  ├── BakaiyaCropRepositoryImpl (File verification + Validation)
-  ├── Room Database v5 (KrishiSaathiDatabase, BakaiyaCropDao, 7 Entities, BakaiyaSeedData)
+  ├── BakaiyaCropRepositoryImpl (File verification + Registration validation)
+  ├── Room Database v6 (KrishiSaathiDatabase, MIGRATION_5_6, BakaiyaCropDao, 6 Entities, BakaiyaSeedData)
   ├── VideoDownloadManager (HTTPS Range Resume + StatFs check) & YouTubeLauncher
-  ├── DataStoreManager (lastSyncTimestamp)
+  ├── DataStoreManager : RegistrationPreferences (registration_completed, last_sync_timestamp)
   └── SupabaseClientProvider (Remote Client) & SyncWorker (WorkManager)
 ```
 
 ## 2. Key Architectural Decisions
-- **Zero-Gate Access:** No login/OTP/MPIN blocking screens.
+- **Mandatory First-Launch Registration Without Auth:** Collects Name, fixed Municipality, Ward (1–12), and Mobile (`+977`) once without passwords, OTP, or MPIN.
 - **Strict Separation of Media:** YouTube URLs launch externally via `YouTubeLauncher`; only explicitly permitted HTTPS `.mp4` streams can be downloaded and played offline in `VideoPlayerScreen`.
-- **Single Source of Truth:** All UI flows collect reactively from Room via `BakaiyaCropRepository`.
+- **Single Source of Truth:** All agricultural flows collect reactively from Room via `BakaiyaCropRepository`.

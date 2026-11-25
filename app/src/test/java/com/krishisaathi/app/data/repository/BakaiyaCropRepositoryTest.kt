@@ -6,11 +6,9 @@ import com.krishisaathi.app.data.local.BakaiyaCropEntity
 import com.krishisaathi.app.data.local.CategoryEntity
 import com.krishisaathi.app.data.local.CropImageEntity
 import com.krishisaathi.app.data.local.EducationalVideoEntity
-import com.krishisaathi.app.data.local.FarmRecordEntity
 import com.krishisaathi.app.data.local.FarmerRegistrationEntity
 import com.krishisaathi.app.data.local.HelplineContactEntity
-import com.krishisaathi.app.domain.model.FarmRecord
-import com.krishisaathi.app.domain.model.FarmRecordType
+import com.krishisaathi.app.domain.model.BakaiyaMunicipality
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -103,75 +101,30 @@ class BakaiyaCropRepositoryTest {
     }
 
     @Test
-    fun optionalRegistrationPersistsAndClearsWithoutAuth() = runBlocking {
+    fun farmerRegistrationPersistsValidDataAndRejectsInvalidInputs() = runBlocking {
         val fakeDao = FakeBakaiyaCropDao()
         val repository = BakaiyaCropRepositoryImpl(fakeDao, testDispatchers)
 
         assertNull(repository.getFarmerRegistration().first())
 
-        repository.saveFarmerRegistration("  राम बहादुर  ", 5, " 9841234567 ")
+        assertTrue(repository.saveFarmerRegistration(" ", 5, "9841234567").isFailure)
+        assertTrue(repository.saveFarmerRegistration("राम बहादुर", 15, "9841234567").isFailure)
+        assertTrue(repository.saveFarmerRegistration("राम बहादुर", 5, "12345").isFailure)
+        assertNull(repository.getFarmerRegistration().first())
+
+        val success = repository.saveFarmerRegistration("  राम बहादुर  ", 5, " +977 9841234567 ")
+        assertTrue(success.isSuccess)
+
         val saved = repository.getFarmerRegistration().first()
         assertNotNull(saved)
         assertEquals("राम बहादुर", saved?.fullName)
+        assertEquals(BakaiyaMunicipality.DEFAULT_NAME, saved?.municipality)
         assertEquals(5, saved?.wardNumber)
         assertEquals("9841234567", saved?.phoneNumber)
+        assertTrue((saved?.registeredAt ?: 0L) > 0L)
 
         repository.clearFarmerRegistration()
         assertNull(repository.getFarmerRegistration().first())
-    }
-
-    @Test
-    fun farmRecordCrudValidatesComputesTotalsAndDeletes() = runBlocking {
-        val fakeDao = FakeBakaiyaCropDao()
-        val repository = BakaiyaCropRepositoryImpl(fakeDao, testDispatchers)
-
-        // Invalid record should fail cleanly
-        val invalidResult = repository.addFarmRecord(
-            FarmRecord(
-                id = "rec-invalid",
-                type = FarmRecordType.EXPENSE,
-                categoryNe = " ",
-                amount = 0.0,
-                descriptionNe = "",
-                cropNameNe = null,
-                dateMillis = 1000L,
-                createdAt = 1000L
-            )
-        )
-        assertTrue(invalidResult.isFailure)
-
-        val expense = FarmRecord(
-            id = "rec-1",
-            type = FarmRecordType.EXPENSE,
-            categoryNe = "मलखाद",
-            amount = 1500.0,
-            descriptionNe = "डीएपी खरिद",
-            cropNameNe = "धान",
-            dateMillis = 2000L,
-            createdAt = 2000L
-        )
-        val income = FarmRecord(
-            id = "rec-2",
-            type = FarmRecordType.INCOME,
-            categoryNe = "बाली बिक्री",
-            amount = 5200.0,
-            descriptionNe = "धान बिक्री",
-            cropNameNe = "धान",
-            dateMillis = 3000L,
-            createdAt = 3000L
-        )
-
-        assertTrue(repository.addFarmRecord(expense).isSuccess)
-        assertTrue(repository.addFarmRecord(income).isSuccess)
-
-        assertEquals(2, repository.getAllFarmRecords().first().size)
-        assertEquals(1, repository.getFarmRecordsByType(FarmRecordType.INCOME).first().size)
-        assertEquals(5200.0, repository.getTotalIncome().first(), 0.001)
-        assertEquals(1500.0, repository.getTotalExpense().first(), 0.001)
-
-        repository.deleteFarmRecord("rec-1")
-        assertEquals(1, repository.getAllFarmRecords().first().size)
-        assertEquals(0.0, repository.getTotalExpense().first(), 0.001)
     }
 
     private class FakeBakaiyaCropDao : BakaiyaCropDao {
@@ -181,7 +134,6 @@ class BakaiyaCropRepositoryTest {
         private val videos = MutableStateFlow<List<EducationalVideoEntity>>(emptyList())
         private val contacts = MutableStateFlow<List<HelplineContactEntity>>(emptyList())
         private val registration = MutableStateFlow<FarmerRegistrationEntity?>(null)
-        private val farmRecords = MutableStateFlow<List<FarmRecordEntity>>(emptyList())
 
         override fun getAllCategories(): Flow<List<CategoryEntity>> = categories
 
@@ -279,6 +231,8 @@ class BakaiyaCropRepositoryTest {
 
         override fun getFarmerRegistration(): Flow<FarmerRegistrationEntity?> = registration
 
+        override fun findFarmerRegistrationSync(): FarmerRegistrationEntity? = registration.value
+
         override fun saveFarmerRegistration(registration: FarmerRegistrationEntity): Long {
             this.registration.value = registration
             return 1L
@@ -288,29 +242,5 @@ class BakaiyaCropRepositoryTest {
             this.registration.value = null
             return 1
         }
-
-        override fun getAllFarmRecords(): Flow<List<FarmRecordEntity>> =
-            farmRecords.map { list -> list.sortedByDescending { it.dateMillis } }
-
-        override fun getFarmRecordsByType(type: String): Flow<List<FarmRecordEntity>> =
-            farmRecords.map { list -> list.filter { it.type == type }.sortedByDescending { it.dateMillis } }
-
-        override fun insertFarmRecord(record: FarmRecordEntity): Long {
-            val current = farmRecords.value.filterNot { it.id == record.id } + record
-            farmRecords.value = current
-            return 1L
-        }
-
-        override fun deleteFarmRecord(recordId: String): Int {
-            val before = farmRecords.value.size
-            farmRecords.value = farmRecords.value.filterNot { it.id == recordId }
-            return before - farmRecords.value.size
-        }
-
-        override fun getTotalIncome(): Flow<Double> =
-            farmRecords.map { list -> list.filter { it.type == "income" }.sumOf { it.amount } }
-
-        override fun getTotalExpense(): Flow<Double> =
-            farmRecords.map { list -> list.filter { it.type == "expense" }.sumOf { it.amount } }
     }
 }

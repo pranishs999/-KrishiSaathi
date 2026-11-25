@@ -105,8 +105,15 @@ data class HelplineContact(
     val isVerified: Boolean
 )
 
+object BakaiyaMunicipality {
+    const val DEFAULT_NAME = "बकैया गाउँपालिका, मकवानपुर"
+    val WARDS: List<Int> = (1..12).toList()
+}
+
 data class FarmerRegistration(
     val fullName: String,
+    val municipality: String = BakaiyaMunicipality.DEFAULT_NAME,
     val wardNumber: Int,
-    val phoneNumber: String
+    val phoneNumber: String,
+    val registeredAt: Long = 0L
 )

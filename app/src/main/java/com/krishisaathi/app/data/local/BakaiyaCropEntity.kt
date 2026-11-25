@@ -100,22 +100,8 @@ data class HelplineContactEntity(
 data class FarmerRegistrationEntity(
     @PrimaryKey val id: String = "primary_farmer",
     @ColumnInfo(name = "full_name") val fullName: String,
+    @ColumnInfo(name = "municipality") val municipality: String = "बकैया गाउँपालिका, मकवानपुर",
     @ColumnInfo(name = "ward_number") val wardNumber: Int,
-    @ColumnInfo(name = "phone_number") val phoneNumber: String
-)
-
-/**
- * Simple farm income/expense record for "फार्मको हिसाब कसरी राख्ने?" feature.
- * Local-only Room storage, no Supabase sync for this prototype.
- */
-@Entity(tableName = "farm_records")
-data class FarmRecordEntity(
-    @PrimaryKey val id: String,
-    @ColumnInfo(name = "type") val type: String, // "income" or "expense"
-    @ColumnInfo(name = "category_ne") val categoryNe: String,
-    @ColumnInfo(name = "amount") val amount: Double,
-    @ColumnInfo(name = "description_ne") val descriptionNe: String,
-    @ColumnInfo(name = "crop_name_ne") val cropNameNe: String? = null,
-    @ColumnInfo(name = "date_millis") val dateMillis: Long,
-    @ColumnInfo(name = "created_at") val createdAt: Long = System.currentTimeMillis()
+    @ColumnInfo(name = "phone_number") val phoneNumber: String,
+    @ColumnInfo(name = "registered_at") val registeredAt: Long = System.currentTimeMillis()
 )

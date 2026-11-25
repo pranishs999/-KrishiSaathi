@@ -8,18 +8,53 @@ import java.util.Locale
 object ValidationUtils {
 
     /**
-     * Validates Nepali mobile numbers (10 digits starting with 98 or 97) or standard Nepal landline (0XX-XXXXXX / 057XXXXXX).
+     * Converts Devanagari numerals (०-९) to ASCII digits and strips whitespace/hyphens and optional +977 prefix.
+     */
+    fun normalizeNepalMobileNumber(rawPhone: String): String {
+        val asciiDigits = buildString(rawPhone.length) {
+            for (ch in rawPhone) {
+                when (ch) {
+                    in '\u0966'..'\u096F' -> append(('0'.code + (ch.code - '\u0966'.code)).toChar())
+                    else -> append(ch)
+                }
+            }
+        }
+        val stripped = asciiDigits.replace(Regex("[\\s-]"), "")
+        return when {
+            stripped.startsWith("+977") -> stripped.removePrefix("+977")
+            stripped.startsWith("977") && stripped.length == 13 -> stripped.removePrefix("977")
+            else -> stripped
+        }
+    }
+
+    /**
+     * Validates Nepali mobile numbers (10 digits starting with 98, 97, or 96).
+     */
+    fun isValidNepalMobileNumber(rawPhone: String): Boolean {
+        val cleaned = normalizeNepalMobileNumber(rawPhone)
+        return cleaned.length == 10 &&
+                (cleaned.startsWith("98") || cleaned.startsWith("97") || cleaned.startsWith("96")) &&
+                cleaned.all { it in '0'..'9' }
+    }
+
+    /**
+     * Validates Nepali mobile numbers (10 digits starting with 98, 97, or 96) or standard Nepal landline (0XX-XXXXXX / 057XXXXXX).
      */
     fun isValidNepalPhoneNumber(rawPhone: String): Boolean {
-        val cleaned = rawPhone.replace(Regex("[\\s-]"), "")
+        val cleaned = normalizeNepalMobileNumber(rawPhone)
         val isMobile = cleaned.length == 10 &&
                 (cleaned.startsWith("98") || cleaned.startsWith("97") || cleaned.startsWith("96")) &&
-                cleaned.all { it.isDigit() }
+                cleaned.all { it in '0'..'9' }
         val isLandline = cleaned.length in 9..10 &&
                 cleaned.startsWith("0") &&
-                cleaned.all { it.isDigit() }
+                cleaned.all { it in '0'..'9' }
         return isMobile || isLandline
     }
+
+    /**
+     * Validates Bakaiya Rural Municipality ward numbers (Wards 1-12).
+     */
+    fun isValidBakaiyaWard(ward: Int?): Boolean = ward != null && ward in 1..12
 
     /**
      * Validates strict HTTPS external URLs for YouTube educational video playback.

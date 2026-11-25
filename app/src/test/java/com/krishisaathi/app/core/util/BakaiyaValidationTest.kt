@@ -23,6 +23,29 @@ class BakaiyaValidationTest {
     }
 
     @Test
+    fun nepalMobileValidationEnforcesTenDigitsHandlesPrefixAndDevanagari() {
+        assertTrue(ValidationUtils.isValidNepalMobileNumber("9841234567"))
+        assertTrue(ValidationUtils.isValidNepalMobileNumber("+977 9841234567"))
+        assertTrue(ValidationUtils.isValidNepalMobileNumber("९८४१२३४५६७"))
+        assertTrue(ValidationUtils.isValidNepalMobileNumber("9741234567"))
+
+        assertFalse(ValidationUtils.isValidNepalMobileNumber("057-520123"))
+        assertFalse(ValidationUtils.isValidNepalMobileNumber("12345"))
+        assertFalse(ValidationUtils.isValidNepalMobileNumber("9512345678"))
+        assertFalse(ValidationUtils.isValidNepalMobileNumber("98412abc67"))
+    }
+
+    @Test
+    fun wardValidationEnforcesBakaiyaWardsOneToTwelve() {
+        (1..12).forEach { ward ->
+            assertTrue(ValidationUtils.isValidBakaiyaWard(ward))
+        }
+        assertFalse(ValidationUtils.isValidBakaiyaWard(null))
+        assertFalse(ValidationUtils.isValidBakaiyaWard(0))
+        assertFalse(ValidationUtils.isValidBakaiyaWard(13))
+    }
+
+    @Test
     fun youTubeUrlValidationEnforcesHttpsAndKnownHosts() {
         assertTrue(ValidationUtils.isValidYouTubeUrl("https://www.youtube.com/watch?v=NzwRsir1-ps"))
         assertTrue(ValidationUtils.isValidYouTubeUrl("https://youtube.com/watch?v=ttjs2dSpI3A"))

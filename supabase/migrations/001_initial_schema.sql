@@ -116,32 +116,20 @@ CREATE TABLE IF NOT EXISTS public.helpline_contacts (
 );
 
 -- ----------------------------------------------------------------------------
--- 6. OPTIONAL FARMER REGISTRATION (no auth, local-first)
+-- 6. FARMER REGISTRATION (mandatory first-launch registration, no auth)
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.farmer_registration (
     id TEXT PRIMARY KEY DEFAULT 'primary_farmer',
     full_name TEXT NOT NULL,
+    municipality TEXT NOT NULL DEFAULT 'बकैया गाउँपालिका, मकवानपुर',
     ward_number INT NOT NULL DEFAULT 1,
     phone_number TEXT NOT NULL,
+    registered_at BIGINT NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- ----------------------------------------------------------------------------
--- 7. FARM RECORDS (income/expense tracking)
--- ----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS public.farm_records (
-    id TEXT PRIMARY KEY,
-    type TEXT NOT NULL CHECK (type IN ('income', 'expense')),
-    category_ne TEXT NOT NULL,
-    amount DOUBLE PRECISION NOT NULL,
-    description_ne TEXT NOT NULL DEFAULT '',
-    crop_name_ne TEXT,
-    date_millis BIGINT NOT NULL,
-    created_at BIGINT NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT
-);
-
--- ----------------------------------------------------------------------------
--- 8. SYNC METADATA
+-- 7. SYNC METADATA
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.content_sync_metadata (
     table_name TEXT PRIMARY KEY,
@@ -160,8 +148,6 @@ CREATE INDEX IF NOT EXISTS idx_crop_images_crop ON public.crop_images (crop_id);
 CREATE INDEX IF NOT EXISTS idx_videos_crop ON public.educational_videos (crop_id);
 CREATE INDEX IF NOT EXISTS idx_videos_topic ON public.educational_videos (topic_id);
 CREATE INDEX IF NOT EXISTS idx_helpline_ward ON public.helpline_contacts (ward_number);
-CREATE INDEX IF NOT EXISTS idx_farm_records_type ON public.farm_records (type);
-CREATE INDEX IF NOT EXISTS idx_farm_records_date ON public.farm_records (date_millis DESC);
 
 -- ----------------------------------------------------------------------------
 -- ROW LEVEL SECURITY (RLS)
@@ -172,7 +158,6 @@ ALTER TABLE public.crop_images ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.educational_videos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.helpline_contacts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.farmer_registration ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.farm_records ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.content_sync_metadata ENABLE ROW LEVEL SECURITY;
 
 -- Public read access to published agricultural content
@@ -183,9 +168,8 @@ CREATE POLICY "Public can view educational videos" ON public.educational_videos 
 CREATE POLICY "Public can view helpline contacts" ON public.helpline_contacts FOR SELECT USING (true);
 CREATE POLICY "Public can view sync metadata" ON public.content_sync_metadata FOR SELECT USING (true);
 
--- Farmer registration and farm records (open for anonymous app users)
+-- Farmer registration (open for first-launch registration without login)
 CREATE POLICY "Allow all on farmer_registration" ON public.farmer_registration FOR ALL USING (true);
-CREATE POLICY "Allow all on farm_records" ON public.farm_records FOR ALL USING (true);
 
 -- Admin content management
 CREATE POLICY "Allow all on categories" ON public.crop_categories FOR ALL USING (true);

@@ -2,10 +2,10 @@
 package com.krishisaathi.app.ui.navigation
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AccountBalanceWallet
-import androidx.compose.material.icons.outlined.Call
-import androidx.compose.material.icons.outlined.Grass
+import androidx.compose.material.icons.outlined.Agriculture
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.SupportAgent
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class BottomNavItem(
@@ -22,26 +22,26 @@ sealed class BottomNavItem(
     data object Crops : BottomNavItem(
         route = "crops",
         title = "बालीहरू",
-        icon = Icons.Outlined.Grass
-    )
-
-    data object FarmRecords : BottomNavItem(
-        route = "farm_records",
-        title = "फार्म हिसाब",
-        icon = Icons.Outlined.AccountBalanceWallet
+        icon = Icons.Outlined.Agriculture
     )
 
     data object Helpline : BottomNavItem(
         route = "helpline",
-        title = "हेल्पलाइन",
-        icon = Icons.Outlined.Call
+        title = "किसान हेल्पलाइन",
+        icon = Icons.Outlined.SupportAgent
+    )
+
+    data object Profile : BottomNavItem(
+        route = "profile",
+        title = "मेरो विवरण",
+        icon = Icons.Outlined.Person
     )
 }
 
-// Explicit navigation destination list.
+// Explicit 4-tab navigation destination list.
 val bottomNavItems: List<BottomNavItem> = listOf(
     BottomNavItem.Home,
     BottomNavItem.Crops,
-    BottomNavItem.FarmRecords,
-    BottomNavItem.Helpline
+    BottomNavItem.Helpline,
+    BottomNavItem.Profile
 )
