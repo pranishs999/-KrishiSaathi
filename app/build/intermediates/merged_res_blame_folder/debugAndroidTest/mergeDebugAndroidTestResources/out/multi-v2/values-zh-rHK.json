@@ -4,24 +4,7 @@
             "outputFile": "com.krishisaathi.app.test.app-mergeDebugAndroidTestResources-33:/values-zh-rHK/values-zh-rHK.xml",
             "map": [
                 {
-                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/fe2f88ba90f0b7e87204827d13454f7e/transformed/core-1.16.0/res/values-zh-rHK/values-zh-rHK.xml",
-                    "from": {
-                        "startLines": "2,3,4,5,6,7,8,9",
-                        "startColumns": "4,4,4,4,4,4,4,4",
-                        "startOffsets": "55,147,246,340,434,527,620,716",
-                        "endColumns": "91,98,93,93,92,92,95,100",
-                        "endOffsets": "142,241,335,429,522,615,711,812"
-                    },
-                    "to": {
-                        "startLines": "3,4,5,6,7,8,9,26",
-                        "startColumns": "4,4,4,4,4,4,4,4",
-                        "startOffsets": "197,289,388,482,576,669,762,2076",
-                        "endColumns": "91,98,93,93,92,92,95,100",
-                        "endOffsets": "284,383,477,571,664,757,853,2172"
-                    }
-                },
-                {
-                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/6f99d3a6df8d240edf55b249db316521/transformed/ui/res/values-zh-rHK/values-zh-rHK.xml",
+                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/328d9027f42f10175140b429c1b4eca4/transformed/ui/res/values-zh-rHK/values-zh-rHK.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
@@ -35,6 +18,23 @@
                         "startOffsets": "105,858,934,1008,1096,1187,1265,1339,1416,1494,1568,1641,1716,1783,1864,1937,2007,2177,2252,2317",
                         "endColumns": "91,75,73,87,90,77,73,76,77,73,72,74,66,80,72,69,68,74,64,115",
                         "endOffsets": "192,929,1003,1091,1182,1260,1334,1411,1489,1563,1636,1711,1778,1859,1932,2002,2071,2247,2312,2428"
+                    }
+                },
+                {
+                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/492c47f369f320e71ec5a3176a27eb9f/transformed/core-1.16.0/res/values-zh-rHK/values-zh-rHK.xml",
+                    "from": {
+                        "startLines": "2,3,4,5,6,7,8,9",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,147,246,340,434,527,620,716",
+                        "endColumns": "91,98,93,93,92,92,95,100",
+                        "endOffsets": "142,241,335,429,522,615,711,812"
+                    },
+                    "to": {
+                        "startLines": "3,4,5,6,7,8,9,26",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "197,289,388,482,576,669,762,2076",
+                        "endColumns": "91,98,93,93,92,92,95,100",
+                        "endOffsets": "284,383,477,571,664,757,853,2172"
                     }
                 }
             ]

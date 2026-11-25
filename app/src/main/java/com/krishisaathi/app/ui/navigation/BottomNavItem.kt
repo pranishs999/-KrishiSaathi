@@ -1,46 +1,47 @@
+
 package com.krishisaathi.app.ui.navigation
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.outlined.AccountBalanceWallet
+import androidx.compose.material.icons.outlined.Call
+import androidx.compose.material.icons.outlined.Grass
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.ui.graphics.vector.ImageVector
 
-/**
- * Bottom navigation destinations with certified Devanagari titles.
- */
 sealed class BottomNavItem(
     val route: String,
     val title: String,
     val icon: ImageVector
 ) {
-    object Home : BottomNavItem(
+    data object Home : BottomNavItem(
         route = "home",
         title = "गृहपृष्ठ",
-        icon = Icons.Default.Home
+        icon = Icons.Outlined.Home
     )
 
-    object Crops : BottomNavItem(
+    data object Crops : BottomNavItem(
         route = "crops",
-        title = "बाली",
-        icon = Icons.AutoMirrored.Filled.List
+        title = "बालीहरू",
+        icon = Icons.Outlined.Grass
     )
 
-    object Weather : BottomNavItem(
-        route = "weather",
-        title = "मौसम",
-        icon = Icons.Default.DateRange
+    data object FarmRecords : BottomNavItem(
+        route = "farm_records",
+        title = "फार्म हिसाब",
+        icon = Icons.Outlined.AccountBalanceWallet
     )
 
-    object Profile : BottomNavItem(
-        route = "profile",
-        title = "प्रोफाइल",
-        icon = Icons.Default.Person
+    data object Helpline : BottomNavItem(
+        route = "helpline",
+        title = "हेल्पलाइन",
+        icon = Icons.Outlined.Call
     )
-
-    companion object {
-        val items = listOf(Home, Crops, Weather, Profile)
-    }
 }
 
+// Explicit navigation destination list.
+val bottomNavItems: List<BottomNavItem> = listOf(
+    BottomNavItem.Home,
+    BottomNavItem.Crops,
+    BottomNavItem.FarmRecords,
+    BottomNavItem.Helpline
+)

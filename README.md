@@ -1,148 +1,82 @@
-# Krishi Saathi (कृषि साथी)
-*Offline-First Android Agricultural Companion for Makwanpur Farmers*
+# बकैया कृषि साथी (Bakaiya Krishi Saathi)
+
+*Offline-First Android Agricultural Knowledge & Farm Record Companion for Bakaiya Rural Municipality, Makwanpur, Nepal*
 
 ---
 
-## 🌾 Project Overview
+## Overview
 
-**Krishi Saathi** ("Farmer's Companion") is an offline-first native Android mobile application designed to empower smallholder and commercial farmers in the **Makwanpur District (Hetauda and surrounding rural municipalities), Bagmati Province, Nepal**. 
+**बकैया कृषि साथी (Bakaiya Krishi Saathi)** is a Nepali-first, light-mode-only native Android application built with Kotlin and Jetpack Compose for farmers in **Bakaiya Rural Municipality (बकैया गाउँपालिका), Makwanpur, Nepal**.
 
-In rural Nepal, farmers encounter critical agricultural challenges: erratic cellular connectivity in hill terrains, counterfeit or inappropriately mixed agro-chemicals, untracked pest infestations (such as Fall Armyworm and Tomato Late Blight), and outdated planting schedules disrupted by microclimate variations. Krishi Saathi bridges this information gap by providing a high-reliability, zero-latency advisory directly on the farmer's smartphone.
-
-All core agronomic guides, seasonal calendars, pest/disease diagnostic matrices, and agrochemical dosage calculations operate **100% offline** using local cached data, with seamless background synchronization to a remote **Supabase** backend whenever internet connectivity is restored.
+Core agricultural knowledge operates **100% offline** via a pre-seeded Room SQLite database (`KrishiSaathiDatabase`), with zero login, OTP, or MPIN gates.
 
 ---
 
-## 🎯 Target Audience & Local Context
+## Implemented Features
 
-- **Primary Users:** Smallholder and commercial farmers operating in:
-  - **Subtropical Lowland / Inner-Terai Valleys:** Hetauda Sub-Metropolitan City, Manahari Rural Municipality, Bakaiya Rural Municipality.
-  - **Temperate Mid-Hills:** Thaha Municipality (Daman, Palung), Makwanpurgadhi Rural Municipality, Bhimphedi Rural Municipality.
-- **Key Regional Crops Supported:**
-  - *Staple Cereals:* Paddy (धान - Radha-4, Sabitri, Chaite), Maize (मकै - Rampur Composite, Arun-2), Wheat (गहुँ).
-  - *Cash Crops & Vegetables:* Off-season Tomato (गोलभेडा), Cauliflower (काउली), Cabbage (बन्दा), Mustard (तोरी), Ginger (अदुवा), Large Cardamom (अलैंची).
-- **Secondary Users:**
-  - Local Agro-Vet proprietors seeking standardized pesticide registration tables.
-  - Junior Technical Assistants (JTAs) and Agricultural Extension Officers conducting field audits.
-  - System Administrators managing verified regional advisory content.
-
----
-
-## 📱 Technology Stack
-
-Krishi Saathi uses a modern, battle-tested, lightweight native Android tech stack configured to ensure high performance on low-resource hardware:
-
-| Layer | Technology | Specification / Details |
-|---|---|---|
-| **Language** | Kotlin | v2.2.x (Modern idiomatic Kotlin, Coroutines, Flow) |
-| **Minimum SDK** | Android 8.0 (API Level 26) | Ensures compatibility with ~95%+ active Android devices in rural Nepal |
-| **Target SDK** | Android 15 / 16 (API Level 37) | Latest platform standards, modern permissions, edge-to-edge layout |
-| **UI Framework** | Jetpack Compose + Material 3 | Declarative UI, dynamic typography, outdoor high-contrast themes |
-| **Architecture** | MVVM + Repository Pattern | Clean separation of concerns, unidirectional data flow (UDF) |
-| **Local Storage** | Android Room Database | SQLite-based offline cache with pre-packaged agricultural seed database |
-| **Secure Storage** | Android Keystore & EncryptedSharedPreferences | Secure token handling for authentication and user preferences |
-| **Backend as a Service** | Supabase (PostgreSQL 15+) | PostgREST API, Row Level Security (RLS), Supabase Auth (Phone OTP) |
-| **Network & Serialization** | Ktor Client / Kotlinx Serialization | Lightweight HTTP client engine without heavy reflection overhead |
-| **Build System** | Gradle Kotlin DSL (`build.gradle.kts`) | Version catalogs (`gradle/libs.versions.toml`) |
+1. **गृहपृष्ठ (Home Screen):** Welcome banner, instant crop search bar, optional local farmer profile card (Name, Ward 1–12, Phone), 6 crop category cards, quick shortcuts, NARC seasonal highlights, and featured crops.
+2. **कुन खेती कसरी गर्ने? (`CropsScreen` & `CropDetailScreen`):**
+   - Live Nepali, English, and scientific-name crop search and category filtering across 8 verified crops (`धान`, `मकै`, `काउली`, `गोलभेंडा`, `अदुवा`, `तोरी`, `मसुरो`, `केरा`).
+   - 22-section Crop Detail guide covering overview, varieties, planting season, altitude, environmental requirements (temperature, humidity, soil types, pH, sunlight, water requirement), 9 expandable cultivation stages, Wikimedia Commons reference images with fullscreen viewer, and topic-filtered video tutorials across 8 cultivation stages (`VideoTopic`).
+3. **फार्मको हिसाब कसरी राख्ने? (`FarmRecordsScreen`):**
+   - Local-first income and expense ledger (`farm_records`) with Nepali categories, optional crop tagging, net balance summary, type filters (`सबै`, `आम्दानी`, `खर्च`), delete confirmation, and an expandable Nepali bookkeeping guide.
+4. **कृषि प्रविधि युट्यूब च्यानलहरू (`YouTubeChannelsScreen` & Video Learning):**
+   - Dedicated directory of 7 verified Nepali agricultural YouTube channels (`AITC Nepal`, `Krishi Television HD`, `NTV NEWS NEPAL`, `Krishi Patrika`, `LAB TV NEPAL`, `Agro Chiran`, `कृषि लोकसेवा तयारी`) opened safely via `YouTubeLauncher`.
+   - Crop-level verified YouTube video links (`provider = "youtube"`, never downloaded) plus an authorized HTTPS offline downloader (`VideoDownloadManager`) and offline Media3 ExoPlayer (`VideoPlayerScreen`) demonstrated with explicitly labeled sample MP4 media (`isSampleMedia = true`).
+5. **किसान हेल्पलाइन (`HelplineScreen`):**
+   - Verified public contacts from `bakaiyakrishi.gov.np`, ward filter chips (Central Agriculture Branch + Wards 1–12), empty-state fallback guidance, and direct `Intent.ACTION_DIAL` support.
 
 ---
 
-## 🌟 Key Features (MVP Phase 1)
+## Technology Stack
 
-1. **Offline Agronomic Library:** Detailed cultivation stages (land preparation, seed treatment, irrigation, harvesting) for Makwanpur's primary crops.
-2. **Pest & Disease Diagnostic Guide:** Visual symptom identification, preventive cultural controls, and biological remedies.
-3. **Verified Pesticide & Fertilizer Calculator:** 
-   - Instant calculation of chemical and organic inputs tailored to traditional Nepali land units (**Ropani-Aana-Paisa-Daam** and **Bigha-Katha-Dhur**).
-   - Strict Pre-Harvest Interval (PHI) indicators and WHO Toxicity Classifications (Red, Yellow, Blue, Green badges).
-4. **Seasonal Makwanpur Crop Calendar:** Planting and harvesting advisories tailored for mid-hills vs. valley microclimates.
-5. **Farmer Profile & Onboarding:** Low-friction Phone OTP authentication with offline fallback profile storage.
+| Layer | Technology |
+|---|---|
+| **Language** | Kotlin + Coroutines + Flow |
+| **SDK** | Min SDK 26 (Android 8.0) / Target SDK 37 |
+| **UI** | Jetpack Compose + Material Design 3 (Light Mode Only — Natural Ivory `#F6F7EF` & Forest Green `#174D36`) |
+| **Architecture** | MVVM (`StateFlow`) + Manual DI (`AppContainer`) + Offline-First Repository |
+| **Local Storage** | Room Database v5 + DataStore Preferences |
+| **Media** | AndroidX Media3 ExoPlayer + Coil Compose |
+| **Background Sync** | AndroidX WorkManager (`SyncWorker`) + Supabase Kotlin SDK |
 
 ---
 
-## 🏗️ Project Architecture Snapshot
+## Build & Verification
 
+```bash
+# Build Debug APK
+./gradlew assembleDebug
+
+# Build Android Instrumentation Test APK
+./gradlew assembleDebugAndroidTest
+
+# Run JVM Unit Tests
+./gradlew testDebugUnitTest
+
+# Run Android Lint
+./gradlew lintDebug
 ```
-                       +---------------------------------------+
-                       |        Jetpack Compose (UI)           |
-                       | (Screens, Navigation, Outdoor Theme)  |
-                       +---------------------------------------+
-                                          |
-                                    State / Events
-                                          v
-                       +---------------------------------------+
-                       |           View Layer (MVVM)           |
-                       |       StateFlow<UiState> & ViewModel  |
-                       +---------------------------------------+
-                                          |
-                                   Repository API
-                                          v
-                       +---------------------------------------+
-                       |      Offline-First Repository         |
-                       | (Single Source of Truth: Room SQLite) |
-                       +---------------------------------------+
-                                    /           \
-                                   /             \
-                                  v               v
-            +------------------------+      +---------------------------+
-            |  Local Room Database   |      |   Remote Supabase Backend |
-            | (Pre-seeded Agro Data) |      | (PostgreSQL, RLS, Auth)   |
-            +------------------------+      +---------------------------+
+
+Optional Supabase credentials can be supplied in root `local.properties`:
+```properties
+sdk.dir=/path/to/android-sdk
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key
 ```
 
 ---
 
-## 🚀 Getting Started
+## Documentation Suite
 
-### Prerequisites
-- **Android Studio:** Ladybug (2024.2.1+) or newer.
-- **JDK:** OpenJDK 17 or JDK 21.
-- **Android SDK:** Platforms 26 through 37 installed.
-- **Physical Device:** Android device (API 26+) recommended for field verification and offline test runs.
-
-### Installation & Build
-
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/pranish/KrishiSaathi.git
-   cd KrishiSaathi
-   ```
-
-2. **Configure Local Secrets:**
-   Create or update `local.properties` in the project root:
-   ```properties
-   sdk.dir=/path/to/your/android-sdk
-   SUPABASE_URL=https://your-project-ref.supabase.co
-   SUPABASE_ANON_KEY=your-supabase-anon-key
-   ```
-
-3. **Build the Debug APK:**
-   ```bash
-   ./gradlew assembleDebug
-   ```
-
-4. **Run Unit and Android Tests:**
-   ```bash
-   ./gradlew testDebugUnitTest
-   ```
-
----
-
-## 📜 Documentation Index
-
-For complete architectural specifications, database design, and operational rules, consult the project documentation suite:
-
-- [CONTEXT.md](file:///home/pranish/AndroidStudioProjects/KrishiSaathi/CONTEXT.md) - Business domain, offline principles, MVP scope, and data truth rules.
-- [PLAN.md](file:///home/pranish/AndroidStudioProjects/KrishiSaathi/PLAN.md) - 48-Hour compressed MVP development roadmap.
-- [ARCHITECTURE.md](file:///home/pranish/AndroidStudioProjects/KrishiSaathi/ARCHITECTURE.md) - Deep dive into MVVM, Repository pattern, and Room-Supabase sync.
-- [DATABASE.md](file:///home/pranish/AndroidStudioProjects/KrishiSaathi/DATABASE.md) - Relational schema, Room entities, and field specifications.
-- [SECURITY.md](file:///home/pranish/AndroidStudioProjects/KrishiSaathi/SECURITY.md) - Supabase RLS policies, Keystore security, and agrochemical safety checks.
-- [TASKS.md](file:///home/pranish/AndroidStudioProjects/KrishiSaathi/TASKS.md) - Granular tracking checklist for all 8 roadmap phases.
-- [AGENT_RULES.md](file:///home/pranish/AndroidStudioProjects/KrishiSaathi/AGENT_RULES.md) - Strict AI working guidelines and engineering constraints.
-
----
-
-## ⚖️ License & Attribution
-
-Agricultural advisory datasets conform to published documentation by the **Nepal Agricultural Research Council (NARC)** and the **Ministry of Agriculture and Livestock Development (MoALD), Nepal**.
-All code is maintained under the project license.
-
+- [PROJECT_AUDIT.md](file:///home/pranish/AndroidStudioProjects/KrishiSaathi/docs/PROJECT_AUDIT.md) — Current codebase structure and component inventory
+- [ARCHITECTURE.md](file:///home/pranish/AndroidStudioProjects/KrishiSaathi/docs/ARCHITECTURE.md) — UI, Domain, Data, and Media architecture
+- [REQUIREMENTS.md](file:///home/pranish/AndroidStudioProjects/KrishiSaathi/docs/REQUIREMENTS.md) — Product scope and implemented capabilities
+- [DATA_SOURCES.md](file:///home/pranish/AndroidStudioProjects/KrishiSaathi/docs/DATA_SOURCES.md) — Verified NARC/AITC, Wikimedia, YouTube, and Bakaiya contact provenance
+- [AGRICULTURAL_DATA_POLICY.md](file:///home/pranish/AndroidStudioProjects/KrishiSaathi/docs/AGRICULTURAL_DATA_POLICY.md) — Data truthfulness and zero-hallucination rules
+- [API_CONTRACTS.md](file:///home/pranish/AndroidStudioProjects/KrishiSaathi/docs/API_CONTRACTS.md) — Repository, Media, and Supabase PostgreSQL contracts
+- [OFFLINE_SYNC.md](file:///home/pranish/AndroidStudioProjects/KrishiSaathi/docs/OFFLINE_SYNC.md) — Room SSOT and offline download lifecycle
+- [AUTHENTICATION.md](file:///home/pranish/AndroidStudioProjects/KrishiSaathi/docs/AUTHENTICATION.md) — Zero-login access policy and optional registration
+- [UI_UX_GUIDELINES.md](file:///home/pranish/AndroidStudioProjects/KrishiSaathi/docs/UI_UX_GUIDELINES.md) — Approved 14-color palette and Devanagari typography rules
+- [TESTING.md](file:///home/pranish/AndroidStudioProjects/KrishiSaathi/docs/TESTING.md) — Automated unit and instrumented test overview
+- [KNOWN_LIMITATIONS.md](file:///home/pranish/AndroidStudioProjects/KrishiSaathi/docs/KNOWN_LIMITATIONS.md) — Documented prototype boundaries

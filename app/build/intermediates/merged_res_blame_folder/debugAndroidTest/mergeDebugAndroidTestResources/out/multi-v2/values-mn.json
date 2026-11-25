@@ -4,24 +4,7 @@
             "outputFile": "com.krishisaathi.app.test.app-mergeDebugAndroidTestResources-33:/values-mn/values-mn.xml",
             "map": [
                 {
-                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/fe2f88ba90f0b7e87204827d13454f7e/transformed/core-1.16.0/res/values-mn/values-mn.xml",
-                    "from": {
-                        "startLines": "2,3,4,5,6,7,8,9",
-                        "startColumns": "4,4,4,4,4,4,4,4",
-                        "startOffsets": "55,153,255,356,454,559,671,790",
-                        "endColumns": "97,101,100,97,104,111,118,100",
-                        "endOffsets": "148,250,351,449,554,666,785,886"
-                    },
-                    "to": {
-                        "startLines": "3,4,5,6,7,8,9,26",
-                        "startColumns": "4,4,4,4,4,4,4,4",
-                        "startOffsets": "216,314,416,517,615,720,832,2312",
-                        "endColumns": "97,101,100,97,104,111,118,100",
-                        "endOffsets": "309,411,512,610,715,827,946,2408"
-                    }
-                },
-                {
-                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/6f99d3a6df8d240edf55b249db316521/transformed/ui/res/values-mn/values-mn.xml",
+                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/328d9027f42f10175140b429c1b4eca4/transformed/ui/res/values-mn/values-mn.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
@@ -35,6 +18,23 @@
                         "startOffsets": "105,951,1043,1129,1221,1317,1400,1486,1580,1667,1748,1831,1914,1987,2078,2155,2235,2413,2490,2556",
                         "endColumns": "110,91,85,91,95,82,85,93,86,80,82,82,72,90,76,79,76,76,65,116",
                         "endOffsets": "211,1038,1124,1216,1312,1395,1481,1575,1662,1743,1826,1909,1982,2073,2150,2230,2307,2485,2551,2668"
+                    }
+                },
+                {
+                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/492c47f369f320e71ec5a3176a27eb9f/transformed/core-1.16.0/res/values-mn/values-mn.xml",
+                    "from": {
+                        "startLines": "2,3,4,5,6,7,8,9",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,153,255,356,454,559,671,790",
+                        "endColumns": "97,101,100,97,104,111,118,100",
+                        "endOffsets": "148,250,351,449,554,666,785,886"
+                    },
+                    "to": {
+                        "startLines": "3,4,5,6,7,8,9,26",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "216,314,416,517,615,720,832,2312",
+                        "endColumns": "97,101,100,97,104,111,118,100",
+                        "endOffsets": "309,411,512,610,715,827,946,2408"
                     }
                 }
             ]

@@ -15,12 +15,8 @@ import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 
 /**
- * Background WorkManager worker responsible for synchronizing verified agricultural data
- * from Supabase to local Room database.
- *
- * Strict Offline-First Constraint:
- * SyncWorker ONLY pulls verified published agricultural data from Supabase to Room.
- * The farmer's app always reads strictly from Room (Single Source of Truth).
+ * Background WorkManager worker responsible for refreshing cached agricultural knowledge
+ * into the local Room database for offline read-only access.
  */
 class SyncWorker(
     appContext: Context,
@@ -28,7 +24,7 @@ class SyncWorker(
 ) : CoroutineWorker(appContext, workerParams) {
 
     companion object {
-        const val WORK_NAME = "krishi_saathi_agricultural_sync_work"
+        const val WORK_NAME = "bakaiya_krishi_saathi_sync_work"
         private const val TAG = "SyncWorker"
 
         fun enqueuePeriodicSync(context: Context) {
@@ -36,7 +32,7 @@ class SyncWorker(
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
 
-            val syncRequest = PeriodicWorkRequestBuilder<SyncWorker>(6, TimeUnit.HOURS)
+            val syncRequest = PeriodicWorkRequestBuilder<SyncWorker>(12, TimeUnit.HOURS)
                 .setConstraints(constraints)
                 .build()
 
@@ -49,30 +45,19 @@ class SyncWorker(
     }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
-        Log.d(TAG, "Starting background agricultural advisory sync...")
+        Log.d(TAG, "Refreshing Bakaiya agricultural knowledge cache...")
         try {
             val appContainer = (applicationContext as KrishiSaathiApp).appContainer
-            val database = appContainer.database
-            val supabase = appContainer.supabaseClient
-            val dataStore = appContainer.dataStoreManager
-
-            // Strict Offline-First Constraint:
-            // Background sync ONLY pulls verified published agricultural data from Supabase
-            // and writes it into local Room cache (Room is SSOT for farmers).
-            // Placeholder for data delta ingestion:
-            // e.g.:
-            // val lastSync = ...
-            // val remoteCrops = supabase.from("crops").select().decodeList<CropRemoteDto>()
-            // database.cropDao().upsertCrops(...)
-
-            val currentTimestamp = System.currentTimeMillis()
-            dataStore.updateLastSyncTimestamp(currentTimestamp)
-            Log.d(TAG, "Agricultural sync completed successfully at $currentTimestamp")
-            Result.success()
+            val result = appContainer.bakaiyaCropRepository.syncRemoteContent()
+            if (result.isSuccess) {
+                appContainer.dataStoreManager.updateLastSyncTimestamp(System.currentTimeMillis())
+                Result.success()
+            } else {
+                Result.retry()
+            }
         } catch (e: Exception) {
-            Log.e(TAG, "Agricultural sync failed: ${e.message}", e)
+            Log.e(TAG, "Background content refresh failed: ${e.message}")
             Result.retry()
         }
     }
 }
-

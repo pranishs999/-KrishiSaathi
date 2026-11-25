@@ -1,17 +1,14 @@
 package com.krishisaathi.app.ui.navigation
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.DownloadDone
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -22,112 +19,138 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.krishisaathi.app.di.AppContainer
+import com.krishisaathi.app.ui.theme.DeepCharcoal
+import com.krishisaathi.app.ui.theme.DividerSage
+import com.krishisaathi.app.ui.theme.ForestGreen
+import com.krishisaathi.app.ui.theme.LightGreen
+import com.krishisaathi.app.ui.theme.MutedGreenGrey
+import com.krishisaathi.app.ui.theme.NaturalIvory
 
+/**
+ * Primary scaffold featuring:
+ * - Natural Ivory navigation canvas
+ * - Deep Charcoal selected state and Muted Green Grey unselected state
+ * - Divider Sage structural hairlines
+ * - Exactly 3 bottom navigation tabs: गृहपृष्ठ, बालीहरू, किसान हेल्पलाइन
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScaffold(
+    appContainer: AppContainer,
     modifier: Modifier = Modifier
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
+    val showChromeBars = currentRoute == BottomNavItem.Home.route ||
+            currentRoute?.startsWith("crops") == true ||
+            currentRoute == BottomNavItem.Helpline.route ||
+            currentRoute == BottomNavItem.FarmRecords.route
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = NaturalIvory,
         topBar = {
-            Column {
-                TopAppBar(
-                    title = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .size(10.dp)
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.primary)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
+            if (showChromeBars) {
+                Column {
+                    TopAppBar(
+                        title = {
                             Text(
-                                text = "कृषि साथी",
+                                text = "बकैया कृषि साथी",
                                 style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = MaterialTheme.colorScheme.onSurface
+                                fontWeight = FontWeight.Bold,
+                                color = ForestGreen
                             )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "• Krishi Saathi",
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        titleContentColor = MaterialTheme.colorScheme.onSurface
+                        },
+                        actions = {
+                            IconButton(
+                                onClick = {
+                                    navController.navigate("downloaded_videos") {
+                                        launchSingleTop = true
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.DownloadDone,
+                                    contentDescription = "डाउनलोड गरिएका भिडियोहरू",
+                                    tint = ForestGreen
+                                )
+                            }
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = NaturalIvory,
+                            titleContentColor = ForestGreen
+                        )
                     )
-                )
-                HorizontalDivider(
-                    color = MaterialTheme.colorScheme.outline,
-                    thickness = 1.dp
-                )
+                    HorizontalDivider(
+                        color = DividerSage,
+                        thickness = 1.dp
+                    )
+                }
             }
         },
         bottomBar = {
-            Column {
-                HorizontalDivider(
-                    color = MaterialTheme.colorScheme.outline,
-                    thickness = 1.dp
-                )
-                NavigationBar(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    contentColor = MaterialTheme.colorScheme.primary,
-                    tonalElevation = 0.dp
-                ) {
-                    BottomNavItem.items.forEach { item ->
-                        val selected = currentRoute == item.route
-                        NavigationBarItem(
-                            selected = selected,
-                            onClick = {
-                                if (currentRoute != item.route) {
-                                    navController.navigate(item.route) {
-                                        popUpTo(navController.graph.findStartDestination().id) {
-                                            saveState = true
+            if (showChromeBars) {
+                Column {
+                    HorizontalDivider(
+                        color = DividerSage,
+                        thickness = 1.dp
+                    )
+                    NavigationBar(
+                        containerColor = NaturalIvory,
+                        contentColor = DeepCharcoal,
+                        tonalElevation = 0.dp
+                    ) {
+                        val currentCategoryArg = navBackStackEntry?.arguments?.getString("categoryId")
+                        bottomNavItems.forEach { item ->
+                            val selected = when (item) {
+                                BottomNavItem.Crops -> currentRoute?.startsWith("crops") == true
+                                else -> currentRoute == item.route
+                            }
+                            NavigationBarItem(
+                                selected = selected,
+                                onClick = {
+                                    val shouldResetCropsFilter = item == BottomNavItem.Crops && currentCategoryArg != null
+                                    if (!selected || shouldResetCropsFilter) {
+                                        navController.navigate(item.route) {
+                                            popUpTo(navController.graph.findStartDestination().id) {
+                                                saveState = true
+                                            }
+                                            launchSingleTop = true
+                                            restoreState = (item != BottomNavItem.Crops)
                                         }
-                                        launchSingleTop = true
-                                        restoreState = true
                                     }
-                                }
-                            },
-                            icon = {
-                                Icon(
-                                    imageVector = item.icon,
-                                    contentDescription = item.title
+                                },
+                                icon = {
+                                    Icon(
+                                        imageVector = item.icon,
+                                        contentDescription = item.title
+                                    )
+                                },
+                                label = {
+                                    Text(
+                                        text = item.title,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
+                                    )
+                                },
+                                colors = NavigationBarItemDefaults.colors(
+                                    selectedIconColor = DeepCharcoal,
+                                    selectedTextColor = DeepCharcoal,
+                                    indicatorColor = LightGreen,
+                                    unselectedIconColor = MutedGreenGrey,
+                                    unselectedTextColor = MutedGreenGrey
                                 )
-                            },
-                            label = {
-                                Text(
-                                    text = item.title,
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
-                                )
-                            },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = MaterialTheme.colorScheme.primary,
-                                selectedTextColor = MaterialTheme.colorScheme.primary,
-                                indicatorColor = MaterialTheme.colorScheme.primaryContainer,
-                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                        )
+                        }
                     }
                 }
             }
@@ -135,9 +158,8 @@ fun MainScaffold(
     ) { innerPadding ->
         KrishiSaathiNavHost(
             navController = navController,
-            paddingValues = innerPadding
+            appContainer = appContainer,
+            paddingValues = if (showChromeBars) innerPadding else PaddingValues(0.dp)
         )
     }
 }
-
-

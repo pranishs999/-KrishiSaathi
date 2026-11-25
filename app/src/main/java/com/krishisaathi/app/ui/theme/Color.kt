@@ -2,36 +2,36 @@ package com.krishisaathi.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Krishi Saathi High-Contrast Brand Palette
-// Pure White Canvas, Crisp Black Typography & Radiant Agricultural Highlights
+/**
+ * Bakaiya Krishi Saathi (बकैया कृषि साथी) Approved Design Palette.
+ * Strict Material 3 Light Mode Only.
+ */
 
-// Primary Brand Highlights (Agro Emerald)
-val AgroHighlight = Color(0xFF16A34A)          // Vibrant emerald highlight
-val AgroHighlightDark = Color(0xFF15803D)      // Deep emerald for high-contrast on white
-val AgroHighlightLight = Color(0xFF22C55E)     // Fresh sprout green
-val AgroHighlightContainer = Color(0xFFDCFCE7) // Soft emerald container (10% green)
-val AgroOnHighlightContainer = Color(0xFF14532D) // Dark forest text for containers
+// 14 Approved Colors
+val ForestGreen = Color(0xFF174D36)       // Primary brand, primary buttons, loading, active focus
+val NaturalIvory = Color(0xFFF6F7EF)      // Canvas background, primary button text
+val LightGreen = Color(0xFFDCE9DF)        // Cards background, search bar, secondary buttons, dialogs
+val SoftSage = Color(0xFFE8EDE5)          // Text fields background, chip containers
+val DeepCharcoal = Color(0xFF26352D)      // Primary body text, selected navigation state
+val MutedGreenGrey = Color(0xFF69776D)    // Subtitle text, unselected navigation state
+val LeafGreen = Color(0xFF6E9877)         // Supporting agricultural accent, tags
+val DividerSage = Color(0xFFC8D8C9)       // Structural dividers, subtle outlines
+val PlaceholderText = Color(0xFF8A9B8D)   // Form placeholders, hint text
+val SuccessGreen = Color(0xFF27834A)      // Verified data badge, success status
+val WarningOrange = Color(0xFFC56B2A)     // Seasonal advisory notice, warning alert
+val ErrorMaroon = Color(0xFF8F3030)       // Error indicators, destructive actions
+val DisabledGreen = Color(0xFFA8BDAA)     // Disabled buttons and controls
+val PureWhite = Color(0xFFFFFFFF)         // Modal highlights, icon badges
 
-// Secondary Brand Accent (Harvest Gold / Amber)
-val HarvestGold = Color(0xFFD97706)            // Warm harvest amber
-val HarvestGoldLight = Color(0xFFF59E0B)       // Bright amber
-val HarvestGoldContainer = Color(0xFFFEF3C7)   // Soft gold container
-val HarvestOnGoldContainer = Color(0xFF78350F) // Deep amber text
-
-// Tertiary Earth Slate
-val EarthSlate = Color(0xFF475569)
-val EarthSlateLight = Color(0xFF94A3B8)
-val EarthSlateContainer = Color(0xFFF1F5F9)
-
-// High-Contrast Pure White & Black Base
-val CleanWhite = Color(0xFFFFFFFF)             // Pure White Background
-val CleanOffWhite = Color(0xFFF8FAFC)          // Subtle off-white for cards/chips
-val CrispBlack = Color(0xFF000000)             // Pure Black for primary text
-val TextPrimary = Color(0xFF0A0A0A)            // Deepest black text
-val TextSecondary = Color(0xFF374151)          // Charcoal for secondary text
-val TextMuted = Color(0xFF6B7280)              // Gray for captions
-
-// Card Borders & Dividers
-val BorderLight = Color(0xFFE5E7EB)            // Clean light border
-val BorderHighlight = Color(0xFF86EFAC)        // Green highlight border
-
+// Backwards compatibility mappings for existing codebase references
+val AgroHighlight = ForestGreen
+val AgroHighlightDark = ForestGreen
+val AgroHighlightLight = LeafGreen
+val AgroHighlightContainer = LightGreen
+val AgroOnHighlightContainer = DeepCharcoal
+val CleanWhite = NaturalIvory
+val CleanOffWhite = LightGreen
+val CrispBlack = DeepCharcoal
+val TextPrimary = DeepCharcoal
+val TextSecondary = MutedGreenGrey
+val BorderLight = DividerSage

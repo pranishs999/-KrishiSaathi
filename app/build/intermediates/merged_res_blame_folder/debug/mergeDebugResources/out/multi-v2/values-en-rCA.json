@@ -1,27 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.krishisaathi.app-mergeDebugResources-56:/values-en-rCA/values-en-rCA.xml",
+            "outputFile": "com.krishisaathi.app-mergeDebugResources-63:/values-en-rCA/values-en-rCA.xml",
             "map": [
                 {
-                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/12fb177651d818664d924d381d283cc6/transformed/browser-1.8.0/res/values-en-rCA/values-en-rCA.xml",
-                    "from": {
-                        "startLines": "2,3,4,5",
-                        "startColumns": "4,4,4,4",
-                        "startOffsets": "55,153,250,359",
-                        "endColumns": "97,96,108,98",
-                        "endOffsets": "148,245,354,453"
-                    },
-                    "to": {
-                        "startLines": "13,17,18,19",
-                        "startColumns": "4,4,4,4",
-                        "startOffsets": "1197,1574,1671,1780",
-                        "endColumns": "97,96,108,98",
-                        "endOffsets": "1290,1666,1775,1874"
-                    }
-                },
-                {
-                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/1097cfcb941224d1cf36e2abaae690b3/transformed/material3/res/values-en-rCA/values-en-rCA.xml",
+                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/94f4389bd8fbedfe58ea82068af0e59d/transformed/material3/res/values-en-rCA/values-en-rCA.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
@@ -38,7 +21,7 @@
                     }
                 },
                 {
-                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/fe2f88ba90f0b7e87204827d13454f7e/transformed/core-1.16.0/res/values-en-rCA/values-en-rCA.xml",
+                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/492c47f369f320e71ec5a3176a27eb9f/transformed/core-1.16.0/res/values-en-rCA/values-en-rCA.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9",
                         "startColumns": "4,4,4,4,4,4,4,4",
@@ -55,7 +38,24 @@
                     }
                 },
                 {
-                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/c28b203a79311bf1b0da35463ed5349c/transformed/foundation/res/values-en-rCA/values-en-rCA.xml",
+                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/6c201aa5211cbd929eb22b6195073bca/transformed/material/res/values-en-rCA/values-en-rCA.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "87",
+                        "endOffsets": "138"
+                    },
+                    "to": {
+                        "startLines": "88",
+                        "startColumns": "4",
+                        "startOffsets": "9121",
+                        "endColumns": "87",
+                        "endOffsets": "9204"
+                    }
+                },
+                {
+                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/4c34988ab1449cf7fee377c371bf480d/transformed/foundation/res/values-en-rCA/values-en-rCA.xml",
                     "from": {
                         "startLines": "2,3,4",
                         "startColumns": "4,4,4",
@@ -72,7 +72,7 @@
                     }
                 },
                 {
-                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/6f99d3a6df8d240edf55b249db316521/transformed/ui/res/values-en-rCA/values-en-rCA.xml",
+                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/328d9027f42f10175140b429c1b4eca4/transformed/ui/res/values-en-rCA/values-en-rCA.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
@@ -89,20 +89,20 @@
                     }
                 },
                 {
-                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/a3bbe5d215a40092d4867db0d9ad0f5c/transformed/material/res/values-en-rCA/values-en-rCA.xml",
+                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/e3dba3c9d75265f79bcebbcb1562043b/transformed/browser-1.8.0/res/values-en-rCA/values-en-rCA.xml",
                     "from": {
-                        "startLines": "2",
-                        "startColumns": "4",
-                        "startOffsets": "55",
-                        "endColumns": "87",
-                        "endOffsets": "138"
+                        "startLines": "2,3,4,5",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "55,153,250,359",
+                        "endColumns": "97,96,108,98",
+                        "endOffsets": "148,245,354,453"
                     },
                     "to": {
-                        "startLines": "88",
-                        "startColumns": "4",
-                        "startOffsets": "9121",
-                        "endColumns": "87",
-                        "endOffsets": "9204"
+                        "startLines": "13,17,18,19",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "1197,1574,1671,1780",
+                        "endColumns": "97,96,108,98",
+                        "endOffsets": "1290,1666,1775,1874"
                     }
                 }
             ]

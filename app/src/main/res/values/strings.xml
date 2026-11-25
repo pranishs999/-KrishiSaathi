@@ -1,3 +1,5 @@
 <resources>
-    <string name="app_name">Krishi Saathi</string>
+    <string name="app_name">बकैया कृषि साथी</string>
+    <string name="app_name_en">Bakaiya Krishi Saathi</string>
+    <string name="app_welcome">बकैया कृषि साथीमा स्वागत छ।</string>
 </resources>

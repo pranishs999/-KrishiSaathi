@@ -4,19 +4,27 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.sqlite.db.SupportSQLiteDatabase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
-/**
- * Primary offline Room Database for Krishi Saathi.
- * Serves as the Single Source of Truth (SSOT) for all agricultural advisory data.
- */
 @Database(
-    entities = [CropEntity::class],
-    version = 1,
+    entities = [
+        CategoryEntity::class,
+        BakaiyaCropEntity::class,
+        CropImageEntity::class,
+        EducationalVideoEntity::class,
+        HelplineContactEntity::class,
+        FarmerRegistrationEntity::class,
+        FarmRecordEntity::class
+    ],
+    version = 5,
     exportSchema = false
 )
 abstract class KrishiSaathiDatabase : RoomDatabase() {
 
-    abstract fun cropDao(): CropDao
+    abstract fun bakaiyaCropDao(): BakaiyaCropDao
 
     companion object {
         @Volatile
@@ -27,13 +35,32 @@ abstract class KrishiSaathiDatabase : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     KrishiSaathiDatabase::class.java,
-                    "krishi_saathi_database"
-                ).fallbackToDestructiveMigration()
+                    "bakaiya_krishi_saathi_database"
+                )
+                    .fallbackToDestructiveMigration()
+                    .addCallback(object : Callback() {
+                        override fun onCreate(db: SupportSQLiteDatabase) {
+                            super.onCreate(db)
+                            CoroutineScope(Dispatchers.IO).launch {
+                                val dao = getInstance(context).bakaiyaCropDao()
+                                seedDatabase(dao)
+                            }
+                        }
+                    })
                     .build()
                 INSTANCE = instance
                 instance
             }
         }
+
+        fun seedDatabase(dao: BakaiyaCropDao) {
+            dao.upsertCategories(BakaiyaSeedData.categories)
+            dao.upsertCrops(BakaiyaSeedData.crops)
+            dao.upsertImages(BakaiyaSeedData.cropImages)
+            // Preserve local download paths if videos already exist locally
+            dao.insertVideosIgnoreConflict(BakaiyaSeedData.educationalVideos)
+            dao.clearHelplineContacts()
+            dao.upsertContacts(BakaiyaSeedData.helplineContacts)
+        }
     }
 }
-

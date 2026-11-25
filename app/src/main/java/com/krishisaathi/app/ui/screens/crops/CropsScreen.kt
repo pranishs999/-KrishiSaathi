@@ -1,7 +1,8 @@
 package com.krishisaathi.app.ui.screens.crops
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,129 +12,284 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.Clear
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Terrain
+import androidx.compose.material.icons.outlined.Verified
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-
-data class CropPreviewItem(
-    val nameNe: String,
-    val nameEn: String,
-    val category: String,
-    val region: String
-)
+import com.krishisaathi.app.domain.model.BakaiyaCrop
+import com.krishisaathi.app.ui.screens.home.CropThumbnailImage
+import com.krishisaathi.app.ui.theme.DeepCharcoal
+import com.krishisaathi.app.ui.theme.ForestGreen
+import com.krishisaathi.app.ui.theme.LightGreen
+import com.krishisaathi.app.ui.theme.MutedGreenGrey
+import com.krishisaathi.app.ui.theme.NaturalIvory
+import com.krishisaathi.app.ui.theme.PlaceholderText
+import com.krishisaathi.app.ui.theme.SoftSage
+import com.krishisaathi.app.ui.theme.SuccessGreen
 
 @Composable
 fun CropsScreen(
+    viewModel: CropsViewModel,
+    onCropClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val sampleCrops = listOf(
-        CropPreviewItem("धान (Paddy)", "Oryza sativa", "खाद्यान्न बाली", "तराई तथा भित्री मधेस (हेटौंडा/मनहरी)"),
-        CropPreviewItem("मकै (Maize)", "Zea mays", "खाद्यान्न बाली", "मध्य पहाड तथा बेंसी (मकवानपुरगढी/थाहा)"),
-        CropPreviewItem("काउली (Cauliflower)", "Brassica oleracea var. botrytis", "मौसमी तरकारी", "थाहा नगरपालिका / पालुङ"),
-        CropPreviewItem("बन्दागोभी (Cabbage)", "Brassica oleracea var. capitata", "मौसमी तरकारी", "दामन / थाहा क्षेत्र"),
-        CropPreviewItem("बेमौसमी गोलभेंडा (Tomato)", "Solanum lycopersicum", "नगदे तरकारी", "मकवानपुरगढी तथा हेटौंडा"),
-        CropPreviewItem("तोरी (Mustard)", "Brassica campestris", "तेलहन बाली", "बकैया तथा मनहरी फाँट"),
-        CropPreviewItem("अदुवा (Ginger)", "Zingiber officinale", "मसला बाली", "भीमफेदी तथा पहाडी भूभाग")
-    )
+    val state by viewModel.uiState.collectAsState()
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp)
+            .background(NaturalIvory)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        Text(
-            text = "बाली निर्देशिका (Crops)",
-            style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.onBackground,
-            fontWeight = FontWeight.ExtraBold
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "मकवानपुरमा लगाइने प्रमुख बालीहरूको सूची",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.Medium
-        )
+        Column {
+            Text(
+                text = "बालीहरू",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = ForestGreen
+            )
+            Text(
+                text = "बाली र खेती निर्देशिका खोज्नुहोस् (अफलाइन उपलब्ध)",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MutedGreenGrey
+            )
+        }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(sampleCrops) { crop ->
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(10.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    )
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = crop.nameNe,
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(MaterialTheme.colorScheme.primaryContainer)
-                                    .padding(horizontal = 8.dp, vertical = 3.dp)
-                            ) {
-                                Text(
-                                    text = crop.category,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                            }
-                        }
-                        Text(
-                            text = crop.nameEn,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = "उपयुक्त क्षेत्र: ",
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                text = crop.region,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.secondary,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
+        // Search Bar (Soft Sage background, Forest Green 2dp focused outline)
+        OutlinedTextField(
+            value = state.searchQuery,
+            onValueChange = viewModel::onSearchQueryChanged,
+            placeholder = { Text("नेपाली वा अंग्रेजी नाम खोज्नुहोस्...", color = PlaceholderText) },
+            leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = "खोज्नुहोस्", tint = DeepCharcoal) },
+            trailingIcon = {
+                if (state.searchQuery.isNotEmpty()) {
+                    IconButton(onClick = { viewModel.onSearchQueryChanged("") }) {
+                        Icon(Icons.Outlined.Clear, contentDescription = "खोज हटाउनुहोस्", tint = DeepCharcoal)
                     }
+                }
+            },
+            shape = RoundedCornerShape(50),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = SoftSage,
+                unfocusedContainerColor = SoftSage,
+                focusedBorderColor = ForestGreen,
+                unfocusedBorderColor = SoftSage,
+                focusedTextColor = DeepCharcoal,
+                unfocusedTextColor = DeepCharcoal,
+                cursorColor = ForestGreen
+            ),
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
+        )
+
+        // Category Filter Chips
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            FilterChip(
+                selected = state.selectedCategoryId == null,
+                onClick = { viewModel.onCategorySelected(null) },
+                label = { Text("सबै") },
+                shape = RoundedCornerShape(50),
+                border = null,
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = ForestGreen,
+                    selectedLabelColor = NaturalIvory,
+                    containerColor = SoftSage,
+                    labelColor = DeepCharcoal
+                )
+            )
+
+            state.categories.forEach { category ->
+                FilterChip(
+                    selected = state.selectedCategoryId == category.id,
+                    onClick = { viewModel.onCategorySelected(category.id) },
+                    label = { Text(category.nameNe) },
+                    shape = RoundedCornerShape(50),
+                    border = null,
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = ForestGreen,
+                        selectedLabelColor = NaturalIvory,
+                        containerColor = SoftSage,
+                        labelColor = DeepCharcoal
+                    )
+                )
+            }
+        }
+
+        // Crops List / Loading / Empty State
+        if (state.isLoading && state.crops.isEmpty()) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = ForestGreen)
+            }
+        } else if (state.crops.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "खोजिएको बाली भेटिएन।",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = DeepCharcoal
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "कृपया अर्को नाम वा वर्ग छनोट गरी पुनः प्रयास गर्नुहोस्।",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MutedGreenGrey
+                    )
+                }
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(state.crops, key = { it.id }) { crop ->
+                    CropItemCard(
+                        crop = crop,
+                        onClick = { onCropClick(crop.id) }
+                    )
                 }
             }
         }
     }
 }
 
+@Composable
+fun CropItemCard(
+    crop: BakaiyaCrop,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = LightGreen),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            CropThumbnailImage(
+                imageUrl = crop.thumbnailUrl,
+                contentDescription = crop.nameNe,
+                modifier = Modifier.size(86.dp)
+            )
 
+            Spacer(modifier = Modifier.width(14.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        text = "${crop.nameNe} (${crop.nameEn})",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = DeepCharcoal,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                    if (crop.isVerifiedContent) {
+                        Icon(
+                            imageVector = Icons.Outlined.Verified,
+                            contentDescription = "प्रमाणित स्रोत",
+                            tint = SuccessGreen,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+
+                Text(
+                    text = crop.descriptionNe,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MutedGreenGrey,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                crop.plantingSeason?.let { season ->
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Outlined.CalendarMonth,
+                            contentDescription = null,
+                            tint = ForestGreen,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = season,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = ForestGreen,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+
+                crop.altitude?.let { alt ->
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Outlined.Terrain,
+                            contentDescription = null,
+                            tint = MutedGreenGrey,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = alt,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MutedGreenGrey,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+            }
+        }
+    }
+}

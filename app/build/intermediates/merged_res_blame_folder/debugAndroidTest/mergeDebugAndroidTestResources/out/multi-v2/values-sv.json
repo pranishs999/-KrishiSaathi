@@ -4,7 +4,7 @@
             "outputFile": "com.krishisaathi.app.test.app-mergeDebugAndroidTestResources-33:/values-sv/values-sv.xml",
             "map": [
                 {
-                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/fe2f88ba90f0b7e87204827d13454f7e/transformed/core-1.16.0/res/values-sv/values-sv.xml",
+                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/492c47f369f320e71ec5a3176a27eb9f/transformed/core-1.16.0/res/values-sv/values-sv.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9",
                         "startColumns": "4,4,4,4,4,4,4,4",
@@ -21,7 +21,7 @@
                     }
                 },
                 {
-                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/6f99d3a6df8d240edf55b249db316521/transformed/ui/res/values-sv/values-sv.xml",
+                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/328d9027f42f10175140b429c1b4eca4/transformed/ui/res/values-sv/values-sv.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",

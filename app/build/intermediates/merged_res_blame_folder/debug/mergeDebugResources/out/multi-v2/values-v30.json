@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.krishisaathi.app-mergeDebugResources-56:/values-v30/values-v30.xml",
+            "outputFile": "com.krishisaathi.app-mergeDebugResources-63:/values-v30/values-v30.xml",
             "map": [
                 {
-                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/1097cfcb941224d1cf36e2abaae690b3/transformed/material3/res/values-v30/values-v30.xml",
+                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/94f4389bd8fbedfe58ea82068af0e59d/transformed/material3/res/values-v30/values-v30.xml",
                     "from": {
                         "startLines": "2",
                         "startColumns": "4",
