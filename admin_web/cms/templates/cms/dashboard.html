@@ -1,0 +1,64 @@
+{% extends "cms/base.html" %}
+{% block title %}Overview • Bakaiya Krishi Saathi Admin{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-wrap justify-between items-center gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">Editorial Overview</h1>
+            <p class="text-sm text-slate-600">Role: <span class="font-semibold uppercase text-[#174D36]">{{ role }}</span></p>
+        </div>
+        <a href="{% url 'cms:crop_create' %}" class="px-4 py-2 rounded-full bg-[#174D36] text-white text-sm font-semibold">+ New Crop Draft</a>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-xl border shadow-sm">
+            <div class="text-xs font-semibold uppercase text-slate-500">Crops</div>
+            <div class="text-2xl font-bold mt-1">{{ crop_published }} / {{ crop_total }}</div>
+            <div class="text-xs text-slate-600 mt-1">Published ({{ crop_review }} in review)</div>
+        </div>
+        <div class="bg-white p-5 rounded-xl border shadow-sm">
+            <div class="text-xs font-semibold uppercase text-slate-500">Livestock Species</div>
+            <div class="text-2xl font-bold mt-1">{{ livestock_published }} / {{ livestock_total }}</div>
+            <div class="text-xs text-slate-600 mt-1">Published ({{ livestock_review }} in review)</div>
+        </div>
+        <div class="bg-white p-5 rounded-xl border shadow-sm">
+            <div class="text-xs font-semibold uppercase text-slate-500">Verified Media Assets</div>
+            <div class="text-2xl font-bold mt-1">{{ media_total }}</div>
+            <div class="text-xs text-slate-600 mt-1">Attributed & processed</div>
+        </div>
+        <div class="bg-white p-5 rounded-xl border shadow-sm">
+            <div class="text-xs font-semibold uppercase text-slate-500">Verified Helplines</div>
+            <div class="text-2xl font-bold mt-1">{{ helpline_verified }}</div>
+            <div class="text-xs text-slate-600 mt-1">Active contacts</div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl border shadow-sm overflow-hidden">
+        <div class="px-5 py-3 border-b bg-slate-50 font-semibold text-sm">Recent Audit Trail</div>
+        <table class="w-full text-sm text-left">
+            <thead class="text-xs uppercase text-slate-500 border-b">
+                <tr>
+                    <th class="px-4 py-2">Timestamp</th>
+                    <th class="px-4 py-2">Actor</th>
+                    <th class="px-4 py-2">Action</th>
+                    <th class="px-4 py-2">Target</th>
+                    <th class="px-4 py-2">Transition</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y">
+                {% for log in recent_logs %}
+                <tr>
+                    <td class="px-4 py-2 text-slate-500">{{ log.created_at }}</td>
+                    <td class="px-4 py-2 font-medium">{{ log.actor|default:"System" }}</td>
+                    <td class="px-4 py-2">{{ log.action }}</td>
+                    <td class="px-4 py-2">{{ log.target_type }}:{{ log.target_id }}</td>
+                    <td class="px-4 py-2">{{ log.from_status }} &rarr; {{ log.to_status }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="px-4 py-6 text-center text-slate-500">No audit entries recorded yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

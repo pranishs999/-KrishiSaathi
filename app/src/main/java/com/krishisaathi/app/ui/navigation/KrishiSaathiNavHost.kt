@@ -20,7 +20,12 @@ import com.krishisaathi.app.ui.screens.crops.CropsViewModel
 import com.krishisaathi.app.ui.screens.helpline.HelplineScreen
 import com.krishisaathi.app.ui.screens.home.HomeScreen
 import com.krishisaathi.app.ui.screens.home.HomeViewModel
-import com.krishisaathi.app.ui.screens.profile.ProfileScreen
+import com.krishisaathi.app.ui.screens.livestock.LivestockScreen
+import com.krishisaathi.app.ui.screens.livestock.LivestockViewModel
+import com.krishisaathi.app.ui.screens.livestock.AnimalDetailScreen
+import com.krishisaathi.app.ui.screens.livestock.AnimalDetailViewModel
+import com.krishisaathi.app.ui.screens.registration.RegistrationScreen
+import com.krishisaathi.app.ui.screens.registration.RegistrationViewModel
 import com.krishisaathi.app.ui.screens.videos.DownloadedVideosScreen
 import com.krishisaathi.app.ui.screens.videos.DownloadedVideosViewModel
 import com.krishisaathi.app.ui.screens.videos.VideoPlayerScreen
@@ -37,6 +42,7 @@ fun KrishiSaathiNavHost(
         startDestination = BottomNavItem.Home.route,
         modifier = modifier.padding(paddingValues)
     ) {
+        // ---- TAB 1: गृहपृष्ठ (Home) ----
         composable(BottomNavItem.Home.route) {
             val homeViewModel: HomeViewModel = viewModel(
                 factory = HomeViewModel.factory(appContainer)
@@ -61,6 +67,22 @@ fun KrishiSaathiNavHost(
                         launchSingleTop = true
                     }
                 },
+                onNavigateToLivestock = {
+                    navController.navigate(BottomNavItem.Livestock.route) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                    }
+                },
+                onNavigateToHelpline = {
+                    navController.navigate(BottomNavItem.Helpline.route) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                    }
+                },
                 onNavigateToDownloadedVideos = {
                     navController.navigate("downloaded_videos") {
                         launchSingleTop = true
@@ -70,10 +92,16 @@ fun KrishiSaathiNavHost(
                     navController.navigate("youtube_channels") {
                         launchSingleTop = true
                     }
+                },
+                onNavigateToOptionalRegistration = {
+                    navController.navigate("registration") {
+                        launchSingleTop = true
+                    }
                 }
             )
         }
 
+        // ---- TAB 2: बाली (Crops) ----
         composable(
             route = "crops?categoryId={categoryId}",
             arguments = listOf(
@@ -99,14 +127,38 @@ fun KrishiSaathiNavHost(
             )
         }
 
+        // ---- TAB 3: पशुपालन (Livestock) ----
+        composable(
+            route = "livestock?categoryId={categoryId}",
+            arguments = listOf(
+                navArgument("categoryId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) { backStackEntry ->
+            val categoryId = backStackEntry.arguments?.getString("categoryId")
+            val livestockViewModel: LivestockViewModel = viewModel(
+                key = "livestock_${categoryId ?: "all"}",
+                factory = LivestockViewModel.factory(appContainer, categoryId)
+            )
+            LivestockScreen(
+                viewModel = livestockViewModel,
+                onAnimalClick = { animalId ->
+                    navController.navigate("animal_detail/$animalId") {
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
+        // ---- TAB 4: किसान हेल्पलाइन (Helpline) ----
         composable(BottomNavItem.Helpline.route) {
-            HelplineScreen()
+            HelplineScreen(appContainer = appContainer)
         }
 
-        composable(BottomNavItem.Profile.route) {
-            ProfileScreen()
-        }
-
+        // ---- DETAIL SCREENS (not tabs) ----
         composable(
             route = "crop_detail/{cropId}",
             arguments = listOf(navArgument("cropId") { type = NavType.StringType })
@@ -126,18 +178,37 @@ fun KrishiSaathiNavHost(
             )
         }
 
+        composable(
+            route = "animal_detail/{animalId}",
+            arguments = listOf(navArgument("animalId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val animalId = backStackEntry.arguments?.getString("animalId") ?: ""
+            val animalDetailViewModel: AnimalDetailViewModel = viewModel(
+                factory = AnimalDetailViewModel.factory(animalId, appContainer)
+            )
+            AnimalDetailScreen(
+                viewModel = animalDetailViewModel,
+                onBackClick = { navController.popBackStack() },
+                onPlayLocalVideo = { videoId ->
+                    navController.navigate("video_player/$videoId") {
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
         composable("downloaded_videos") {
             val downloadedViewModel: DownloadedVideosViewModel = viewModel(
                 factory = DownloadedVideosViewModel.factory(appContainer)
             )
             DownloadedVideosScreen(
                 viewModel = downloadedViewModel,
-                onBackClick = { navController.popBackStack() },
                 onPlayVideo = { videoId ->
                     navController.navigate("video_player/$videoId") {
                         launchSingleTop = true
                     }
                 },
+                onBackClick = { navController.popBackStack() },
                 onBrowseCropsClick = {
                     navController.navigate(BottomNavItem.Crops.route) {
                         popUpTo(navController.graph.findStartDestination().id) {
@@ -146,12 +217,6 @@ fun KrishiSaathiNavHost(
                         launchSingleTop = true
                     }
                 }
-            )
-        }
-
-        composable("youtube_channels") {
-            YouTubeChannelsScreen(
-                onBackClick = { navController.popBackStack() }
             )
         }
 
@@ -164,6 +229,22 @@ fun KrishiSaathiNavHost(
                 videoId = videoId,
                 repository = appContainer.bakaiyaCropRepository,
                 onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        composable("youtube_channels") {
+            YouTubeChannelsScreen(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        composable("registration") {
+            val registrationViewModel: RegistrationViewModel = viewModel(
+                factory = RegistrationViewModel.factory(appContainer)
+            )
+            RegistrationScreen(
+                viewModel = registrationViewModel,
+                onRegistrationComplete = { navController.popBackStack() }
             )
         }
     }

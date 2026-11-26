@@ -18,6 +18,9 @@ interface BakaiyaCropDao {
     fun upsertCategories(categories: List<CategoryEntity>): List<Long>
 
     // Crops
+    @Query("SELECT COUNT(*) FROM crops WHERE is_published = 1")
+    fun countPublishedCropsSync(): Int
+
     @Query("SELECT * FROM crops WHERE is_published = 1 ORDER BY name_ne ASC")
     fun getAllCrops(): Flow<List<BakaiyaCropEntity>>
 
@@ -32,6 +35,13 @@ interface BakaiyaCropDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun upsertCrops(crops: List<BakaiyaCropEntity>): List<Long>
+
+    // Variety-Specific Growing Conditions
+    @Query("SELECT * FROM crop_variety_requirements WHERE crop_id = :cropId ORDER BY variety_name_ne ASC")
+    fun getVarietyRequirementsForCrop(cropId: String): Flow<List<CropVarietyRequirementEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun upsertVarietyRequirements(varieties: List<CropVarietyRequirementEntity>): List<Long>
 
     // Images
     @Query("SELECT * FROM crop_images WHERE crop_id = :cropId")

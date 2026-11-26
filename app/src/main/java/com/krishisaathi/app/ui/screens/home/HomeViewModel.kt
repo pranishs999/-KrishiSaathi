@@ -49,7 +49,7 @@ class HomeViewModel(
 
     init {
         viewModelScope.launch {
-            repository.syncRemoteContent()
+            repository.ensureContentSeeded()
         }
     }
 

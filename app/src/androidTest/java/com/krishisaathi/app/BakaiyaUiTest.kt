@@ -127,6 +127,8 @@ class BakaiyaUiTest {
 
             composeTestRule.onNodeWithText("१. बालीको परिचय").assertIsDisplayed()
             composeTestRule.onNodeWithText("वातावरणीय आवश्यकता (५ - ११)").performScrollTo().assertIsDisplayed()
+            composeTestRule.onNodeWithText("Growing Conditions & Requirements").performScrollTo().assertIsDisplayed()
+            composeTestRule.onNodeWithText("नेपालका क्षेत्र अनुसार उपयुक्तता (Nepal Suitability)").performScrollTo().assertIsDisplayed()
             composeTestRule.onNodeWithText("२२. भिडियोबाट सिक्नुहोस्").performScrollTo().assertIsDisplayed()
 
             composeTestRule.onNodeWithContentDescription("पछाडि फर्कनुहोस्").performClick()

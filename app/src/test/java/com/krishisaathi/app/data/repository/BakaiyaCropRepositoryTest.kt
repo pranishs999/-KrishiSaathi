@@ -5,6 +5,7 @@ import com.krishisaathi.app.data.local.BakaiyaCropDao
 import com.krishisaathi.app.data.local.BakaiyaCropEntity
 import com.krishisaathi.app.data.local.CategoryEntity
 import com.krishisaathi.app.data.local.CropImageEntity
+import com.krishisaathi.app.data.local.CropVarietyRequirementEntity
 import com.krishisaathi.app.data.local.EducationalVideoEntity
 import com.krishisaathi.app.data.local.FarmerRegistrationEntity
 import com.krishisaathi.app.data.local.HelplineContactEntity
@@ -54,6 +55,9 @@ class BakaiyaCropRepositoryTest {
 
         val noneMatches = repository.searchCrops("xyznonexistent").first()
         assertTrue(noneMatches.isEmpty())
+
+        val paddyVarieties = repository.getVarietyRequirementsForCrop("crop-paddy").first()
+        assertTrue(paddyVarieties.any { it.varietyNameEn == "Savitri" })
     }
 
     @Test
@@ -127,9 +131,35 @@ class BakaiyaCropRepositoryTest {
         assertNull(repository.getFarmerRegistration().first())
     }
 
+    @Test
+    fun livestockRepositoryFiltersOutUnpublishedSpeciesAndReturnsVerifiedGuidance() = runBlocking {
+        val fakeDao = FakeBakaiyaCropDao()
+        val repository = BakaiyaCropRepositoryImpl(fakeDao, testDispatchers)
+
+        val categories = repository.getAnimalCategories()
+        assertEquals(4, categories.size)
+
+        val publishedAnimals = repository.getAllAnimals()
+        assertEquals(6, publishedAnimals.size)
+        assertTrue(publishedAnimals.all { it.isPublished })
+        assertNull(repository.getAnimalById("animal-sheep"))
+        assertNull(repository.getAnimalById("animal-duck"))
+
+        val goat = repository.getAnimalById("animal-goat")
+        assertNotNull(goat)
+        assertEquals("बाख्रापालन", goat?.nameNe)
+        assertTrue(repository.getBreedsForAnimal("animal-goat").isNotEmpty())
+        assertNotNull(repository.getHousingForAnimal("animal-goat"))
+        assertNotNull(repository.getFeedingForAnimal("animal-goat"))
+        assertNotNull(repository.getHealthForAnimal("animal-goat"))
+        assertTrue(repository.getDiseasesForAnimal("animal-goat").isNotEmpty())
+        assertTrue(repository.getImagesForAnimal("animal-goat").isNotEmpty())
+    }
+
     private class FakeBakaiyaCropDao : BakaiyaCropDao {
         private val categories = MutableStateFlow<List<CategoryEntity>>(emptyList())
         private val crops = MutableStateFlow<List<BakaiyaCropEntity>>(emptyList())
+        private val varietyRequirements = MutableStateFlow<List<CropVarietyRequirementEntity>>(emptyList())
         private val images = MutableStateFlow<List<CropImageEntity>>(emptyList())
         private val videos = MutableStateFlow<List<EducationalVideoEntity>>(emptyList())
         private val contacts = MutableStateFlow<List<HelplineContactEntity>>(emptyList())
@@ -141,6 +171,8 @@ class BakaiyaCropRepositoryTest {
             this.categories.value = categories
             return categories.mapIndexed { i, _ -> i.toLong() }
         }
+
+        override fun countPublishedCropsSync(): Int = crops.value.count { it.isPublished }
 
         override fun getAllCrops(): Flow<List<BakaiyaCropEntity>> = crops
 
@@ -162,6 +194,14 @@ class BakaiyaCropRepositoryTest {
         override fun upsertCrops(crops: List<BakaiyaCropEntity>): List<Long> {
             this.crops.value = crops
             return crops.mapIndexed { i, _ -> i.toLong() }
+        }
+
+        override fun getVarietyRequirementsForCrop(cropId: String): Flow<List<CropVarietyRequirementEntity>> =
+            varietyRequirements.map { list -> list.filter { it.cropId == cropId } }
+
+        override fun upsertVarietyRequirements(varieties: List<CropVarietyRequirementEntity>): List<Long> {
+            this.varietyRequirements.value = varieties
+            return varieties.mapIndexed { i, _ -> i.toLong() }
         }
 
         override fun getImagesForCrop(cropId: String): Flow<List<CropImageEntity>> =

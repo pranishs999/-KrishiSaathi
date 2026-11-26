@@ -21,7 +21,7 @@ interface AppContainer {
     val database: KrishiSaathiDatabase
     val dataStoreManager: DataStoreManager
     val registrationPreferences: RegistrationPreferences
-    val supabaseClient: SupabaseClient
+    val supabaseClient: SupabaseClient?
     val bakaiyaCropRepository: BakaiyaCropRepository
     val videoDownloadManager: VideoDownloadManager
 }
@@ -43,14 +43,15 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
     override val registrationPreferences: RegistrationPreferences
         get() = dataStoreManager
 
-    override val supabaseClient: SupabaseClient by lazy {
-        SupabaseClientProvider.createClient()
+    override val supabaseClient: SupabaseClient? by lazy {
+        SupabaseClientProvider.createClientOrNull()
     }
 
     override val bakaiyaCropRepository: BakaiyaCropRepository by lazy {
         BakaiyaCropRepositoryImpl(
             dao = database.bakaiyaCropDao(),
-            dispatchers = dispatchers
+            dispatchers = dispatchers,
+            database = database
         )
     }
 

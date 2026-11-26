@@ -15,3 +15,4 @@ string app_welcome
 style Theme_KrishiSaathi
 xml backup_rules
 xml data_extraction_rules
+xml network_security_config

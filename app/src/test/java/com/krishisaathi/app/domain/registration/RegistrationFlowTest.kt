@@ -2,10 +2,19 @@ package com.krishisaathi.app.domain.registration
 
 import com.krishisaathi.app.AppEntryState
 import com.krishisaathi.app.data.local.prefs.RegistrationPreferences
+import com.krishisaathi.app.domain.model.Animal
+import com.krishisaathi.app.domain.model.AnimalBreed
+import com.krishisaathi.app.domain.model.AnimalCategory
+import com.krishisaathi.app.domain.model.AnimalDisease
+import com.krishisaathi.app.domain.model.AnimalFeedingGuidance
+import com.krishisaathi.app.domain.model.AnimalHealthGuidance
+import com.krishisaathi.app.domain.model.AnimalHousingGuidance
+import com.krishisaathi.app.domain.model.AnimalImage
 import com.krishisaathi.app.domain.model.BakaiyaCrop
 import com.krishisaathi.app.domain.model.BakaiyaMunicipality
 import com.krishisaathi.app.domain.model.CropCategory
 import com.krishisaathi.app.domain.model.CropImage
+import com.krishisaathi.app.domain.model.CropVarietyRequirement
 import com.krishisaathi.app.domain.model.EducationalVideo
 import com.krishisaathi.app.domain.model.FarmerRegistration
 import com.krishisaathi.app.domain.model.HelplineContact
@@ -173,6 +182,7 @@ class RegistrationFlowTest {
         override fun getCategories(): Flow<List<CropCategory>> = MutableStateFlow(emptyList())
         override fun getCrops(): Flow<List<BakaiyaCrop>> = MutableStateFlow(emptyList())
         override fun getCropById(cropId: String): Flow<BakaiyaCrop?> = MutableStateFlow(null)
+        override fun getVarietyRequirementsForCrop(cropId: String): Flow<List<CropVarietyRequirement>> = MutableStateFlow(emptyList())
         override fun getCropsByCategory(categoryId: String): Flow<List<BakaiyaCrop>> = MutableStateFlow(emptyList())
         override fun searchCrops(query: String): Flow<List<BakaiyaCrop>> = MutableStateFlow(emptyList())
         override fun getCropImages(cropId: String): Flow<List<CropImage>> = MutableStateFlow(emptyList())
@@ -185,5 +195,17 @@ class RegistrationFlowTest {
         override suspend fun markVideoDownloaded(videoId: String, localPath: String, sizeBytes: Long) = Result.success(Unit)
         override suspend fun deleteDownloadedVideo(videoId: String) = Result.success(Unit)
         override suspend fun syncRemoteContent() = Result.success(Unit)
+        override suspend fun ensureContentSeeded() = Result.success(Unit)
+        override suspend fun getAnimalCategories(): List<AnimalCategory> = emptyList()
+        override suspend fun getAllAnimals(): List<Animal> = emptyList()
+        override suspend fun getAnimalsByCategory(categoryId: String): List<Animal> = emptyList()
+        override suspend fun getAnimalById(animalId: String): Animal? = null
+        override suspend fun getBreedsForAnimal(animalId: String): List<AnimalBreed> = emptyList()
+        override suspend fun getHousingForAnimal(animalId: String): AnimalHousingGuidance? = null
+        override suspend fun getFeedingForAnimal(animalId: String): AnimalFeedingGuidance? = null
+        override suspend fun getHealthForAnimal(animalId: String): AnimalHealthGuidance? = null
+        override suspend fun getDiseasesForAnimal(animalId: String): List<AnimalDisease> = emptyList()
+        override suspend fun getImagesForAnimal(animalId: String): List<AnimalImage> = emptyList()
+        override suspend fun getVideosForAnimal(animalId: String): List<EducationalVideo> = emptyList()
     }
 }

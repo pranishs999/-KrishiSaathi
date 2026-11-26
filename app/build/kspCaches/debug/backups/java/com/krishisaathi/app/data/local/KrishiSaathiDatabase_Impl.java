@@ -16,6 +16,7 @@ import java.lang.Override;
 import java.lang.String;
 import java.lang.SuppressWarnings;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -31,29 +32,35 @@ public final class KrishiSaathiDatabase_Impl extends KrishiSaathiDatabase {
   @Override
   @NonNull
   protected SupportSQLiteOpenHelper createOpenHelper(@NonNull final DatabaseConfiguration config) {
-    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(5) {
+    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(7) {
       @Override
       public void createAllTables(@NonNull final SupportSQLiteDatabase db) {
         db.execSQL("CREATE TABLE IF NOT EXISTS `crop_categories` (`id` TEXT NOT NULL, `name_ne` TEXT NOT NULL, `name_en` TEXT NOT NULL, `icon_name` TEXT, PRIMARY KEY(`id`))");
-        db.execSQL("CREATE TABLE IF NOT EXISTS `crops` (`id` TEXT NOT NULL, `category_id` TEXT NOT NULL, `name_ne` TEXT NOT NULL, `name_en` TEXT NOT NULL, `scientific_name` TEXT NOT NULL, `description_ne` TEXT NOT NULL, `varieties` TEXT, `planting_season` TEXT, `climate_overview` TEXT, `suitable_altitude` TEXT, `temp_min` REAL, `temp_max` REAL, `humidity_min` REAL, `humidity_max` REAL, `soil_types` TEXT, `soil_ph_min` REAL, `soil_ph_max` REAL, `sunlight` TEXT, `water_requirement` TEXT, `land_preparation` TEXT, `seed_selection` TEXT, `spacing` TEXT, `fertilizer_management` TEXT, `irrigation_management` TEXT, `crop_care` TEXT, `pest_disease_control` TEXT, `harvesting` TEXT, `storage` TEXT, `source_reference` TEXT NOT NULL, `is_verified_content` INTEGER NOT NULL, `thumbnail_url` TEXT, `is_published` INTEGER NOT NULL, PRIMARY KEY(`id`))");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `crops` (`id` TEXT NOT NULL, `category_id` TEXT NOT NULL, `name_ne` TEXT NOT NULL, `name_en` TEXT NOT NULL, `scientific_name` TEXT NOT NULL, `description_ne` TEXT NOT NULL, `varieties` TEXT, `climate_overview` TEXT, `land_preparation` TEXT, `seed_selection` TEXT, `spacing` TEXT, `fertilizer_management` TEXT, `crop_care` TEXT, `pest_disease_control` TEXT, `harvesting` TEXT, `storage` TEXT, `source_reference` TEXT NOT NULL, `is_verified_content` INTEGER NOT NULL, `thumbnail_url` TEXT, `is_published` INTEGER NOT NULL, `altitude_min_m` INTEGER, `altitude_opt_min_m` INTEGER, `altitude_opt_max_m` INTEGER, `altitude_max_m` INTEGER, `suitable_altitude` TEXT, `altitude_growth_notes_ne` TEXT, `suitable_zones_csv` TEXT, `suitable_regions_ne` TEXT, `soil_types` TEXT, `soil_texture_ne` TEXT, `soil_ph_min` REAL, `soil_ph_max` REAL, `soil_drainage_ne` TEXT, `soil_fertility_ne` TEXT, `soil_organic_matter_ne` TEXT, `temp_min` REAL, `temp_opt_min` REAL, `temp_opt_max` REAL, `temp_max` REAL, `humidity_min` REAL, `humidity_max` REAL, `rainfall_min_mm` INTEGER, `rainfall_max_mm` INTEGER, `rainfall_period_label_ne` TEXT, `water_requirement` TEXT, `sunlight` TEXT, `planting_season` TEXT, `sowing_period_ne` TEXT, `transplanting_period_ne` TEXT, `growing_duration_ne` TEXT, `harvesting_period_ne` TEXT, `irrigation_management` TEXT, `special_considerations_ne` TEXT, `last_updated_date` TEXT, PRIMARY KEY(`id`))");
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_crops_category_id` ON `crops` (`category_id`)");
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_crops_is_published` ON `crops` (`is_published`)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `crop_variety_requirements` (`id` TEXT NOT NULL, `crop_id` TEXT NOT NULL, `crop_name_ne` TEXT NOT NULL, `crop_name_en` TEXT NOT NULL, `variety_name_ne` TEXT NOT NULL, `variety_name_en` TEXT, `notes_ne` TEXT, `source_reference` TEXT NOT NULL, `altitude_min_m` INTEGER, `altitude_opt_min_m` INTEGER, `altitude_opt_max_m` INTEGER, `altitude_max_m` INTEGER, `suitable_altitude` TEXT, `altitude_growth_notes_ne` TEXT, `suitable_zones_csv` TEXT, `suitable_regions_ne` TEXT, `soil_types` TEXT, `soil_texture_ne` TEXT, `soil_ph_min` REAL, `soil_ph_max` REAL, `soil_drainage_ne` TEXT, `soil_fertility_ne` TEXT, `soil_organic_matter_ne` TEXT, `temp_min` REAL, `temp_opt_min` REAL, `temp_opt_max` REAL, `temp_max` REAL, `humidity_min` REAL, `humidity_max` REAL, `rainfall_min_mm` INTEGER, `rainfall_max_mm` INTEGER, `rainfall_period_label_ne` TEXT, `water_requirement` TEXT, `sunlight` TEXT, `planting_season` TEXT, `sowing_period_ne` TEXT, `transplanting_period_ne` TEXT, `growing_duration_ne` TEXT, `harvesting_period_ne` TEXT, `irrigation_management` TEXT, `special_considerations_ne` TEXT, `last_updated_date` TEXT, PRIMARY KEY(`id`))");
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_crop_variety_requirements_crop_id` ON `crop_variety_requirements` (`crop_id`)");
         db.execSQL("CREATE TABLE IF NOT EXISTS `crop_images` (`id` TEXT NOT NULL, `crop_id` TEXT NOT NULL, `image_url` TEXT NOT NULL, `caption_ne` TEXT NOT NULL, `stage_category` TEXT NOT NULL, `is_sample_image` INTEGER NOT NULL, PRIMARY KEY(`id`))");
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_crop_images_crop_id` ON `crop_images` (`crop_id`)");
         db.execSQL("CREATE TABLE IF NOT EXISTS `educational_videos` (`id` TEXT NOT NULL, `crop_id` TEXT NOT NULL, `topic_id` INTEGER NOT NULL, `title_ne` TEXT NOT NULL, `description_ne` TEXT NOT NULL, `channel_name` TEXT NOT NULL, `thumbnail_url` TEXT NOT NULL, `video_url` TEXT NOT NULL, `duration` TEXT, `provider` TEXT NOT NULL, `download_permission` INTEGER NOT NULL, `downloadable_file_url` TEXT, `local_file_path` TEXT, `file_size_bytes` INTEGER, `is_downloaded` INTEGER NOT NULL, `is_sample_media` INTEGER NOT NULL, PRIMARY KEY(`id`))");
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_educational_videos_crop_id` ON `educational_videos` (`crop_id`)");
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_educational_videos_topic_id` ON `educational_videos` (`topic_id`)");
         db.execSQL("CREATE TABLE IF NOT EXISTS `helpline_contacts` (`id` TEXT NOT NULL, `name_ne` TEXT NOT NULL, `designation_ne` TEXT NOT NULL, `ward_ne` TEXT NOT NULL, `ward_number` INTEGER NOT NULL, `mobile_number` TEXT NOT NULL, `email` TEXT, `is_verified` INTEGER NOT NULL, PRIMARY KEY(`id`))");
-        db.execSQL("CREATE TABLE IF NOT EXISTS `farmer_registration` (`id` TEXT NOT NULL, `full_name` TEXT NOT NULL, `ward_number` INTEGER NOT NULL, `phone_number` TEXT NOT NULL, PRIMARY KEY(`id`))");
-        db.execSQL("CREATE TABLE IF NOT EXISTS `farm_records` (`id` TEXT NOT NULL, `type` TEXT NOT NULL, `category_ne` TEXT NOT NULL, `amount` REAL NOT NULL, `description_ne` TEXT NOT NULL, `crop_name_ne` TEXT, `date_millis` INTEGER NOT NULL, `created_at` INTEGER NOT NULL, PRIMARY KEY(`id`))");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `farmer_registration` (`id` TEXT NOT NULL, `full_name` TEXT NOT NULL, `municipality` TEXT NOT NULL, `ward_number` INTEGER NOT NULL, `phone_number` TEXT NOT NULL, `registered_at` INTEGER NOT NULL, PRIMARY KEY(`id`))");
         db.execSQL("CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)");
-        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '24cda423f601bc635936ef8bf43356d0')");
+        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f24bb36e2f046837693513cfaf2759c0')");
       }
 
       @Override
       public void dropAllTables(@NonNull final SupportSQLiteDatabase db) {
         db.execSQL("DROP TABLE IF EXISTS `crop_categories`");
         db.execSQL("DROP TABLE IF EXISTS `crops`");
+        db.execSQL("DROP TABLE IF EXISTS `crop_variety_requirements`");
         db.execSQL("DROP TABLE IF EXISTS `crop_images`");
         db.execSQL("DROP TABLE IF EXISTS `educational_videos`");
         db.execSQL("DROP TABLE IF EXISTS `helpline_contacts`");
         db.execSQL("DROP TABLE IF EXISTS `farmer_registration`");
-        db.execSQL("DROP TABLE IF EXISTS `farm_records`");
         final List<? extends RoomDatabase.Callback> _callbacks = mCallbacks;
         if (_callbacks != null) {
           for (RoomDatabase.Callback _callback : _callbacks) {
@@ -111,7 +118,7 @@ public final class KrishiSaathiDatabase_Impl extends KrishiSaathiDatabase {
                   + " Expected:\n" + _infoCropCategories + "\n"
                   + " Found:\n" + _existingCropCategories);
         }
-        final HashMap<String, TableInfo.Column> _columnsCrops = new HashMap<String, TableInfo.Column>(32);
+        final HashMap<String, TableInfo.Column> _columnsCrops = new HashMap<String, TableInfo.Column>(54);
         _columnsCrops.put("id", new TableInfo.Column("id", "TEXT", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsCrops.put("category_id", new TableInfo.Column("category_id", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsCrops.put("name_ne", new TableInfo.Column("name_ne", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
@@ -119,23 +126,11 @@ public final class KrishiSaathiDatabase_Impl extends KrishiSaathiDatabase {
         _columnsCrops.put("scientific_name", new TableInfo.Column("scientific_name", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsCrops.put("description_ne", new TableInfo.Column("description_ne", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsCrops.put("varieties", new TableInfo.Column("varieties", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
-        _columnsCrops.put("planting_season", new TableInfo.Column("planting_season", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsCrops.put("climate_overview", new TableInfo.Column("climate_overview", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
-        _columnsCrops.put("suitable_altitude", new TableInfo.Column("suitable_altitude", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
-        _columnsCrops.put("temp_min", new TableInfo.Column("temp_min", "REAL", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
-        _columnsCrops.put("temp_max", new TableInfo.Column("temp_max", "REAL", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
-        _columnsCrops.put("humidity_min", new TableInfo.Column("humidity_min", "REAL", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
-        _columnsCrops.put("humidity_max", new TableInfo.Column("humidity_max", "REAL", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
-        _columnsCrops.put("soil_types", new TableInfo.Column("soil_types", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
-        _columnsCrops.put("soil_ph_min", new TableInfo.Column("soil_ph_min", "REAL", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
-        _columnsCrops.put("soil_ph_max", new TableInfo.Column("soil_ph_max", "REAL", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
-        _columnsCrops.put("sunlight", new TableInfo.Column("sunlight", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
-        _columnsCrops.put("water_requirement", new TableInfo.Column("water_requirement", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsCrops.put("land_preparation", new TableInfo.Column("land_preparation", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsCrops.put("seed_selection", new TableInfo.Column("seed_selection", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsCrops.put("spacing", new TableInfo.Column("spacing", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsCrops.put("fertilizer_management", new TableInfo.Column("fertilizer_management", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
-        _columnsCrops.put("irrigation_management", new TableInfo.Column("irrigation_management", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsCrops.put("crop_care", new TableInfo.Column("crop_care", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsCrops.put("pest_disease_control", new TableInfo.Column("pest_disease_control", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsCrops.put("harvesting", new TableInfo.Column("harvesting", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
@@ -144,14 +139,103 @@ public final class KrishiSaathiDatabase_Impl extends KrishiSaathiDatabase {
         _columnsCrops.put("is_verified_content", new TableInfo.Column("is_verified_content", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsCrops.put("thumbnail_url", new TableInfo.Column("thumbnail_url", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsCrops.put("is_published", new TableInfo.Column("is_published", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("altitude_min_m", new TableInfo.Column("altitude_min_m", "INTEGER", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("altitude_opt_min_m", new TableInfo.Column("altitude_opt_min_m", "INTEGER", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("altitude_opt_max_m", new TableInfo.Column("altitude_opt_max_m", "INTEGER", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("altitude_max_m", new TableInfo.Column("altitude_max_m", "INTEGER", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("suitable_altitude", new TableInfo.Column("suitable_altitude", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("altitude_growth_notes_ne", new TableInfo.Column("altitude_growth_notes_ne", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("suitable_zones_csv", new TableInfo.Column("suitable_zones_csv", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("suitable_regions_ne", new TableInfo.Column("suitable_regions_ne", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("soil_types", new TableInfo.Column("soil_types", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("soil_texture_ne", new TableInfo.Column("soil_texture_ne", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("soil_ph_min", new TableInfo.Column("soil_ph_min", "REAL", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("soil_ph_max", new TableInfo.Column("soil_ph_max", "REAL", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("soil_drainage_ne", new TableInfo.Column("soil_drainage_ne", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("soil_fertility_ne", new TableInfo.Column("soil_fertility_ne", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("soil_organic_matter_ne", new TableInfo.Column("soil_organic_matter_ne", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("temp_min", new TableInfo.Column("temp_min", "REAL", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("temp_opt_min", new TableInfo.Column("temp_opt_min", "REAL", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("temp_opt_max", new TableInfo.Column("temp_opt_max", "REAL", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("temp_max", new TableInfo.Column("temp_max", "REAL", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("humidity_min", new TableInfo.Column("humidity_min", "REAL", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("humidity_max", new TableInfo.Column("humidity_max", "REAL", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("rainfall_min_mm", new TableInfo.Column("rainfall_min_mm", "INTEGER", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("rainfall_max_mm", new TableInfo.Column("rainfall_max_mm", "INTEGER", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("rainfall_period_label_ne", new TableInfo.Column("rainfall_period_label_ne", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("water_requirement", new TableInfo.Column("water_requirement", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("sunlight", new TableInfo.Column("sunlight", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("planting_season", new TableInfo.Column("planting_season", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("sowing_period_ne", new TableInfo.Column("sowing_period_ne", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("transplanting_period_ne", new TableInfo.Column("transplanting_period_ne", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("growing_duration_ne", new TableInfo.Column("growing_duration_ne", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("harvesting_period_ne", new TableInfo.Column("harvesting_period_ne", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("irrigation_management", new TableInfo.Column("irrigation_management", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("special_considerations_ne", new TableInfo.Column("special_considerations_ne", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrops.put("last_updated_date", new TableInfo.Column("last_updated_date", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
         final HashSet<TableInfo.ForeignKey> _foreignKeysCrops = new HashSet<TableInfo.ForeignKey>(0);
-        final HashSet<TableInfo.Index> _indicesCrops = new HashSet<TableInfo.Index>(0);
+        final HashSet<TableInfo.Index> _indicesCrops = new HashSet<TableInfo.Index>(2);
+        _indicesCrops.add(new TableInfo.Index("index_crops_category_id", false, Arrays.asList("category_id"), Arrays.asList("ASC")));
+        _indicesCrops.add(new TableInfo.Index("index_crops_is_published", false, Arrays.asList("is_published"), Arrays.asList("ASC")));
         final TableInfo _infoCrops = new TableInfo("crops", _columnsCrops, _foreignKeysCrops, _indicesCrops);
         final TableInfo _existingCrops = TableInfo.read(db, "crops");
         if (!_infoCrops.equals(_existingCrops)) {
           return new RoomOpenHelper.ValidationResult(false, "crops(com.krishisaathi.app.data.local.BakaiyaCropEntity).\n"
                   + " Expected:\n" + _infoCrops + "\n"
                   + " Found:\n" + _existingCrops);
+        }
+        final HashMap<String, TableInfo.Column> _columnsCropVarietyRequirements = new HashMap<String, TableInfo.Column>(42);
+        _columnsCropVarietyRequirements.put("id", new TableInfo.Column("id", "TEXT", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("crop_id", new TableInfo.Column("crop_id", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("crop_name_ne", new TableInfo.Column("crop_name_ne", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("crop_name_en", new TableInfo.Column("crop_name_en", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("variety_name_ne", new TableInfo.Column("variety_name_ne", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("variety_name_en", new TableInfo.Column("variety_name_en", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("notes_ne", new TableInfo.Column("notes_ne", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("source_reference", new TableInfo.Column("source_reference", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("altitude_min_m", new TableInfo.Column("altitude_min_m", "INTEGER", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("altitude_opt_min_m", new TableInfo.Column("altitude_opt_min_m", "INTEGER", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("altitude_opt_max_m", new TableInfo.Column("altitude_opt_max_m", "INTEGER", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("altitude_max_m", new TableInfo.Column("altitude_max_m", "INTEGER", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("suitable_altitude", new TableInfo.Column("suitable_altitude", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("altitude_growth_notes_ne", new TableInfo.Column("altitude_growth_notes_ne", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("suitable_zones_csv", new TableInfo.Column("suitable_zones_csv", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("suitable_regions_ne", new TableInfo.Column("suitable_regions_ne", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("soil_types", new TableInfo.Column("soil_types", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("soil_texture_ne", new TableInfo.Column("soil_texture_ne", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("soil_ph_min", new TableInfo.Column("soil_ph_min", "REAL", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("soil_ph_max", new TableInfo.Column("soil_ph_max", "REAL", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("soil_drainage_ne", new TableInfo.Column("soil_drainage_ne", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("soil_fertility_ne", new TableInfo.Column("soil_fertility_ne", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("soil_organic_matter_ne", new TableInfo.Column("soil_organic_matter_ne", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("temp_min", new TableInfo.Column("temp_min", "REAL", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("temp_opt_min", new TableInfo.Column("temp_opt_min", "REAL", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("temp_opt_max", new TableInfo.Column("temp_opt_max", "REAL", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("temp_max", new TableInfo.Column("temp_max", "REAL", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("humidity_min", new TableInfo.Column("humidity_min", "REAL", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("humidity_max", new TableInfo.Column("humidity_max", "REAL", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("rainfall_min_mm", new TableInfo.Column("rainfall_min_mm", "INTEGER", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("rainfall_max_mm", new TableInfo.Column("rainfall_max_mm", "INTEGER", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("rainfall_period_label_ne", new TableInfo.Column("rainfall_period_label_ne", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("water_requirement", new TableInfo.Column("water_requirement", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("sunlight", new TableInfo.Column("sunlight", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("planting_season", new TableInfo.Column("planting_season", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("sowing_period_ne", new TableInfo.Column("sowing_period_ne", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("transplanting_period_ne", new TableInfo.Column("transplanting_period_ne", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("growing_duration_ne", new TableInfo.Column("growing_duration_ne", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("harvesting_period_ne", new TableInfo.Column("harvesting_period_ne", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("irrigation_management", new TableInfo.Column("irrigation_management", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("special_considerations_ne", new TableInfo.Column("special_considerations_ne", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCropVarietyRequirements.put("last_updated_date", new TableInfo.Column("last_updated_date", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        final HashSet<TableInfo.ForeignKey> _foreignKeysCropVarietyRequirements = new HashSet<TableInfo.ForeignKey>(0);
+        final HashSet<TableInfo.Index> _indicesCropVarietyRequirements = new HashSet<TableInfo.Index>(1);
+        _indicesCropVarietyRequirements.add(new TableInfo.Index("index_crop_variety_requirements_crop_id", false, Arrays.asList("crop_id"), Arrays.asList("ASC")));
+        final TableInfo _infoCropVarietyRequirements = new TableInfo("crop_variety_requirements", _columnsCropVarietyRequirements, _foreignKeysCropVarietyRequirements, _indicesCropVarietyRequirements);
+        final TableInfo _existingCropVarietyRequirements = TableInfo.read(db, "crop_variety_requirements");
+        if (!_infoCropVarietyRequirements.equals(_existingCropVarietyRequirements)) {
+          return new RoomOpenHelper.ValidationResult(false, "crop_variety_requirements(com.krishisaathi.app.data.local.CropVarietyRequirementEntity).\n"
+                  + " Expected:\n" + _infoCropVarietyRequirements + "\n"
+                  + " Found:\n" + _existingCropVarietyRequirements);
         }
         final HashMap<String, TableInfo.Column> _columnsCropImages = new HashMap<String, TableInfo.Column>(6);
         _columnsCropImages.put("id", new TableInfo.Column("id", "TEXT", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
@@ -161,7 +245,8 @@ public final class KrishiSaathiDatabase_Impl extends KrishiSaathiDatabase {
         _columnsCropImages.put("stage_category", new TableInfo.Column("stage_category", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsCropImages.put("is_sample_image", new TableInfo.Column("is_sample_image", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         final HashSet<TableInfo.ForeignKey> _foreignKeysCropImages = new HashSet<TableInfo.ForeignKey>(0);
-        final HashSet<TableInfo.Index> _indicesCropImages = new HashSet<TableInfo.Index>(0);
+        final HashSet<TableInfo.Index> _indicesCropImages = new HashSet<TableInfo.Index>(1);
+        _indicesCropImages.add(new TableInfo.Index("index_crop_images_crop_id", false, Arrays.asList("crop_id"), Arrays.asList("ASC")));
         final TableInfo _infoCropImages = new TableInfo("crop_images", _columnsCropImages, _foreignKeysCropImages, _indicesCropImages);
         final TableInfo _existingCropImages = TableInfo.read(db, "crop_images");
         if (!_infoCropImages.equals(_existingCropImages)) {
@@ -187,7 +272,9 @@ public final class KrishiSaathiDatabase_Impl extends KrishiSaathiDatabase {
         _columnsEducationalVideos.put("is_downloaded", new TableInfo.Column("is_downloaded", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsEducationalVideos.put("is_sample_media", new TableInfo.Column("is_sample_media", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         final HashSet<TableInfo.ForeignKey> _foreignKeysEducationalVideos = new HashSet<TableInfo.ForeignKey>(0);
-        final HashSet<TableInfo.Index> _indicesEducationalVideos = new HashSet<TableInfo.Index>(0);
+        final HashSet<TableInfo.Index> _indicesEducationalVideos = new HashSet<TableInfo.Index>(2);
+        _indicesEducationalVideos.add(new TableInfo.Index("index_educational_videos_crop_id", false, Arrays.asList("crop_id"), Arrays.asList("ASC")));
+        _indicesEducationalVideos.add(new TableInfo.Index("index_educational_videos_topic_id", false, Arrays.asList("topic_id"), Arrays.asList("ASC")));
         final TableInfo _infoEducationalVideos = new TableInfo("educational_videos", _columnsEducationalVideos, _foreignKeysEducationalVideos, _indicesEducationalVideos);
         final TableInfo _existingEducationalVideos = TableInfo.read(db, "educational_videos");
         if (!_infoEducationalVideos.equals(_existingEducationalVideos)) {
@@ -213,11 +300,13 @@ public final class KrishiSaathiDatabase_Impl extends KrishiSaathiDatabase {
                   + " Expected:\n" + _infoHelplineContacts + "\n"
                   + " Found:\n" + _existingHelplineContacts);
         }
-        final HashMap<String, TableInfo.Column> _columnsFarmerRegistration = new HashMap<String, TableInfo.Column>(4);
+        final HashMap<String, TableInfo.Column> _columnsFarmerRegistration = new HashMap<String, TableInfo.Column>(6);
         _columnsFarmerRegistration.put("id", new TableInfo.Column("id", "TEXT", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsFarmerRegistration.put("full_name", new TableInfo.Column("full_name", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsFarmerRegistration.put("municipality", new TableInfo.Column("municipality", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsFarmerRegistration.put("ward_number", new TableInfo.Column("ward_number", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsFarmerRegistration.put("phone_number", new TableInfo.Column("phone_number", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsFarmerRegistration.put("registered_at", new TableInfo.Column("registered_at", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         final HashSet<TableInfo.ForeignKey> _foreignKeysFarmerRegistration = new HashSet<TableInfo.ForeignKey>(0);
         final HashSet<TableInfo.Index> _indicesFarmerRegistration = new HashSet<TableInfo.Index>(0);
         final TableInfo _infoFarmerRegistration = new TableInfo("farmer_registration", _columnsFarmerRegistration, _foreignKeysFarmerRegistration, _indicesFarmerRegistration);
@@ -227,27 +316,9 @@ public final class KrishiSaathiDatabase_Impl extends KrishiSaathiDatabase {
                   + " Expected:\n" + _infoFarmerRegistration + "\n"
                   + " Found:\n" + _existingFarmerRegistration);
         }
-        final HashMap<String, TableInfo.Column> _columnsFarmRecords = new HashMap<String, TableInfo.Column>(8);
-        _columnsFarmRecords.put("id", new TableInfo.Column("id", "TEXT", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
-        _columnsFarmRecords.put("type", new TableInfo.Column("type", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
-        _columnsFarmRecords.put("category_ne", new TableInfo.Column("category_ne", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
-        _columnsFarmRecords.put("amount", new TableInfo.Column("amount", "REAL", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
-        _columnsFarmRecords.put("description_ne", new TableInfo.Column("description_ne", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
-        _columnsFarmRecords.put("crop_name_ne", new TableInfo.Column("crop_name_ne", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
-        _columnsFarmRecords.put("date_millis", new TableInfo.Column("date_millis", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
-        _columnsFarmRecords.put("created_at", new TableInfo.Column("created_at", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
-        final HashSet<TableInfo.ForeignKey> _foreignKeysFarmRecords = new HashSet<TableInfo.ForeignKey>(0);
-        final HashSet<TableInfo.Index> _indicesFarmRecords = new HashSet<TableInfo.Index>(0);
-        final TableInfo _infoFarmRecords = new TableInfo("farm_records", _columnsFarmRecords, _foreignKeysFarmRecords, _indicesFarmRecords);
-        final TableInfo _existingFarmRecords = TableInfo.read(db, "farm_records");
-        if (!_infoFarmRecords.equals(_existingFarmRecords)) {
-          return new RoomOpenHelper.ValidationResult(false, "farm_records(com.krishisaathi.app.data.local.FarmRecordEntity).\n"
-                  + " Expected:\n" + _infoFarmRecords + "\n"
-                  + " Found:\n" + _existingFarmRecords);
-        }
         return new RoomOpenHelper.ValidationResult(true, null);
       }
-    }, "24cda423f601bc635936ef8bf43356d0", "1dd1aba25f1620c24413e96af12510b5");
+    }, "f24bb36e2f046837693513cfaf2759c0", "3c49d1609669e21c77930bdf2db9c51e");
     final SupportSQLiteOpenHelper.Configuration _sqliteConfig = SupportSQLiteOpenHelper.Configuration.builder(config.context).name(config.name).callback(_openCallback).build();
     final SupportSQLiteOpenHelper _helper = config.sqliteOpenHelperFactory.create(_sqliteConfig);
     return _helper;
@@ -258,7 +329,7 @@ public final class KrishiSaathiDatabase_Impl extends KrishiSaathiDatabase {
   protected InvalidationTracker createInvalidationTracker() {
     final HashMap<String, String> _shadowTablesMap = new HashMap<String, String>(0);
     final HashMap<String, Set<String>> _viewTables = new HashMap<String, Set<String>>(0);
-    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, "crop_categories","crops","crop_images","educational_videos","helpline_contacts","farmer_registration","farm_records");
+    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, "crop_categories","crops","crop_variety_requirements","crop_images","educational_videos","helpline_contacts","farmer_registration");
   }
 
   @Override
@@ -269,11 +340,11 @@ public final class KrishiSaathiDatabase_Impl extends KrishiSaathiDatabase {
       super.beginTransaction();
       _db.execSQL("DELETE FROM `crop_categories`");
       _db.execSQL("DELETE FROM `crops`");
+      _db.execSQL("DELETE FROM `crop_variety_requirements`");
       _db.execSQL("DELETE FROM `crop_images`");
       _db.execSQL("DELETE FROM `educational_videos`");
       _db.execSQL("DELETE FROM `helpline_contacts`");
       _db.execSQL("DELETE FROM `farmer_registration`");
-      _db.execSQL("DELETE FROM `farm_records`");
       super.setTransactionSuccessful();
     } finally {
       super.endTransaction();

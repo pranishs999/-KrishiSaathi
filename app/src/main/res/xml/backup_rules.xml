@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
    Backup rules for Krishi Saathi (API <= 30).
-   Excludes device-bound EncryptedSharedPreferences used for authentication tokens.
+   Excludes farmer PII databases, DataStore preferences, and downloaded offline media files.
 -->
 <full-backup-content>
-    <exclude domain="sharedpref" path="krishi_saathi_secure_prefs.xml" />
+    <exclude domain="database" path="bakaiya_krishi_saathi_database" />
+    <exclude domain="database" path="bakaiya_krishi_saathi_database-shm" />
+    <exclude domain="database" path="bakaiya_krishi_saathi_database-wal" />
+    <exclude domain="file" path="datastore/bakaiya_krishi_saathi_prefs.preferences_pb" />
+    <exclude domain="file" path="authorized_videos" />
 </full-backup-content>

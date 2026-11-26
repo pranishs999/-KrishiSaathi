@@ -40,6 +40,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -69,10 +70,17 @@ import com.krishisaathi.app.ui.theme.SoftSage
 @Composable
 fun RegistrationScreen(
     viewModel: RegistrationViewModel,
+    onRegistrationComplete: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsState()
     var wardMenuExpanded by remember { mutableStateOf(false) }
+
+    LaunchedEffect(state.isCompleted) {
+        if (state.isCompleted) {
+            onRegistrationComplete()
+        }
+    }
 
     val fieldColors = OutlinedTextFieldDefaults.colors(
         focusedContainerColor = SoftSage,

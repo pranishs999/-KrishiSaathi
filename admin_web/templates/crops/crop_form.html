@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if crop %}बाली सम्पादन{% else %}नयाँ बाली दर्ता{% endif %} - कृषि साथी{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight">{% if crop %}बाली सम्पादन (Edit Crop){% else %}नयाँ बाली दर्ता (Add New Crop){% endif %}</h1>
+            <p class="text-sm text-slate-600 mt-1">मोबाइल एपमा सिंक हुने आधिकारिक बालीको विवरण भर्नुहोस्।</p>
+        </div>
+        <a href="{% url 'crops:list' %}" class="text-sm font-semibold text-slate-500 hover:text-slate-800">← सूचीमा फर्कनुहोस्</a>
+    </div>
+
+    <div class="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">बालीको नाम (नेपाली) *</label>
+                    <input type="text" name="name_ne" value="{{ crop.name_ne|default:'' }}" required placeholder="उदा: धान, मकै, गोलभेंडा" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-agro-600">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Name (English) *</label>
+                    <input type="text" name="name_en" value="{{ crop.name_en|default:'' }}" required placeholder="e.g. Paddy, Maize, Tomato" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-agro-600">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">वैज्ञानिक नाम (Scientific Name) *</label>
+                    <input type="text" name="scientific_name" value="{{ crop.scientific_name|default:'' }}" required placeholder="उदा: Oryza sativa" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-agro-600 italic">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">बाली वर्ग (Category) *</label>
+                    <select name="category_id" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-agro-600 bg-white">
+                        <option value="">वर्ग छान्नुहोस्...</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if crop.category.id == cat.id %}selected{% endif %}>{{ cat.name_ne }} ({{ cat.name_en }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">न्यूनतम पाक्ने दिन (Min Duration Days) *</label>
+                    <input type="number" name="growth_duration_days_min" value="{{ crop.growth_duration_days_min|default:90 }}" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-agro-600">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">अधिकतम पाक्ने दिन (Max Duration Days) *</label>
+                    <input type="number" name="growth_duration_days_max" value="{{ crop.growth_duration_days_max|default:150 }}" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-agro-600">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">उपयुक्त तापक्रम (°C)</label>
+                    <input type="text" name="optimal_temp_celsius" value="{{ crop.optimal_temp_celsius|default:'' }}" placeholder="उदा: 20 - 30" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-agro-600">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">उपयुक्त माटो (Soil Type)</label>
+                    <input type="text" name="soil_type" value="{{ crop.soil_type|default:'' }}" placeholder="उदा: दोमट तथा बलौटे" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-agro-600">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-1">बालीको परिचय तथा विशेषता (Description in Nepali) *</label>
+                <textarea name="description_ne" rows="3" required placeholder="बालीको सामान्य विवरण र महत्त्व..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-agro-600">{{ crop.description_ne|default:'' }}</textarea>
+            </div>
+
+            <div class="flex items-center space-x-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                <input type="checkbox" id="is_published" name="is_published" {% if crop.is_published or not crop %}checked{% endif %} class="w-4 h-4 text-agro-700 rounded border-slate-300 focus:ring-agro-600">
+                <label for="is_published" class="text-sm font-bold text-slate-800">यो बाली किसान एपमा तत्काल प्रकाशित गर्नुहोस् (Publish to App)</label>
+            </div>
+
+            <div class="flex justify-end space-x-4 pt-4 border-t border-slate-100">
+                <a href="{% url 'crops:list' %}" class="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-sm font-bold hover:bg-slate-50 transition">रद्द गर्नुहोस्</a>
+                <button type="submit" class="px-6 py-2.5 rounded-xl bg-agro-700 text-white text-sm font-bold hover:bg-agro-800 transition shadow-sm">
+                    <i class="fa-solid fa-floppy-disk mr-2"></i>सुरक्षित गर्नुहोस् (Save Crop)
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

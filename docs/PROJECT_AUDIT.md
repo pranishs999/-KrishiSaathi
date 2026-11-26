@@ -1,100 +1,49 @@
 # बकैया कृषि साथी (Bakaiya Krishi Saathi) — Project Audit
 
-**Version:** v1.1-revision  
-**Last Updated:** 2026-11-25  
-**Auditor:** Antigravity Lead Engineer
+**Audit Date:** 2026-11-26  
+**Auditor:** Lead Android & Backend Systems Engineer  
+**Repository:** `/home/pranish/AndroidStudioProjects/KrishiSaathi`
 
 ---
 
-## 1. Project Identity
+## 1. Audited Baseline Inventory
 
-| Attribute | Value |
-|---|---|
-| Package | `com.krishisaathi.app` |
-| App Name | बकैया कृषि साथी |
-| Platform | Android (API 26+ / Android 8.0+, targetSdk 37) |
-| Language | Kotlin + Jetpack Compose |
-| Design | Material Design 3 (Light only) |
-| UI Language | Nepali (Devanagari-first) |
-| Database | Room v6 (offline-first, `MIGRATION_5_6`) + Preferences DataStore + Supabase |
-| Media Player | Media3 ExoPlayer |
+### 1.1 Android Application (`app/`)
+- **Language / UI:** Kotlin (Gradle Kotlin DSL), Jetpack Compose BOM `2026.02.01`, Material Design 3 (Light mode only).
+- **Build Toolchain:** AGP `9.3.3`, Gradle `9.9.2`, KSP `2.2.10-2.0.2`, Kotlin `2.2.10`, Java compatibility `11`, `minSdk = 26`, `targetSdk = 37`, `compileSdk = 37`.
+- **Application ID & Version:** `com.krishisaathi.app`, `versionCode = 1`, `versionName = "1.0"`.
+- **Release Optimization (Previously Audited):**
+  - R8 minification (`isMinifyEnabled = true`), resource shrinking (`isShrinkResources = true`), custom ProGuard rules (`app/proguard-rules.pro`), `network_security_config.xml` (HTTPS-only), and restricted backup rules (`backup_rules.xml`, `data_extraction_rules.xml`, `allowBackup = false`) are configured.
+  - Verified baseline release outputs: `app-release-unsigned.apk` (~3.32 MB compressed, single `classes.dex` ~5.17 MB) and `app-release.aab` (~7.93 MB).
+  - Unit tests: 27/27 passing cleanly prior to this extension.
+- **Database & Local Storage:**
+  - Room DB `KrishiSaathiDatabase` (`version = 7`, with `MIGRATION_5_6` and `MIGRATION_6_7`).
+  - Preferences DataStore (`DataStoreManager`).
+- **Media & Video Playback:**
+  - Coil `2.7.0` (`ImageLoaderFactory` with 15% memory cache & 25 MB bounded disk cache).
+  - Media3 ExoPlayer `1.5.1` (`VideoPlayerScreen`) with path-containment check (`filesDir/authorized_videos`).
+  - `VideoDownloadManager` with HTTPS redirect guard and HTTP Range resume.
+  - `YouTubeLauncher` launching verified YouTube URLs/channels externally via `Intent.ACTION_VIEW`.
 
-## 2. Architecture
+### 1.2 Findings & Gaps Identified Before Extension
+1. **Stale / Obsolete References Check (Repaired vs Remaining):**
+   - Obsolete `Farm Hisab` (`FarmRecord`, `FarmRecordsScreen`) was already removed cleanly (`grep` shows only the safe SQL `DROP TABLE IF EXISTS farm_records` inside `MIGRATION_5_6` and a UI test assertion confirming it is absent).
+   - **Conflict with New Master Specification:** The prior revision introduced a **mandatory blocking first-launch registration gate** (`MainActivity` -> `RegistrationScreen`), set Bottom Navigation to `गृहपृष्ठ / बालीहरू / किसान हेल्पलाइन / मेरो विवरण`, and set `HelplineScreen` to Under Construction. The Master Specification requires:
+     - **Zero registration/login gates blocking farmer access** (optional registration must remain non-blocking).
+     - **Exact 4-tab Bottom Navigation:** `गृहपृष्ठ`, `बाली`, `पशुपालन`, `किसान हेल्पलाइन`.
+     - **Live Livestock Education Module (`पशुपालन`)** covering cattle/oxen, buffalo, goats, sheep, pigs, chickens, ducks, and fish across 25 extensible sections.
+     - **Restored Helpline (`किसान हेल्पलाइन`)** with verified official contacts and Android `Intent.ACTION_DIAL` plus dedicated **`निशुल्क कृषि प्राविधिक सेवा`** icon/entry.
+2. **Broken Wikimedia Commons Image URLs Found in `BakaiyaSeedData.kt`:**
+   - Live check against Wikimedia Commons API (`commons.wikimedia.org/w/api.php`) proved three crop thumbnail URLs were broken (`missing: True`: `Rice_plants_(IRRI).jpg`, `Zea_mays_crop.jpg`, `Mustard_field_in_Nepal.jpg`) and `Ginger_plant.jpg` used an incorrect hash prefix (`a/a5` instead of verified `1/1c/Ginger_plant.jpg`).
+3. **Missing Central CMS Backend, Livestock Schema, Verification Workflow & Web Admin Panel:**
+   - `supabase/migrations/` existed (`001_initial_schema.sql`, `002_seed_data.sql`) and `local.properties` defines `SUPABASE_URL` and `SUPABASE_ANON_KEY`, **but** lacked normalized livestock tables, media asset licensing registry, source citations per claim/section, `review_status` workflow state enforcement, RBAC (`Super Admin`, `Content Editor`, `Technical Reviewer`), and audit logs.
+   - No English web admin application (`admin_web/`) existed yet.
+   - `BakaiyaCropRepositoryImpl.syncRemoteContent()` currently re-seeded local Room data instead of fetching published content from the central backend.
 
-```
-app/src/main/java/com/krishisaathi/app/
-├── core/
-│   ├── common/        # AppResult, DispatcherProvider
-│   └── util/          # ValidationUtils
-├── data/
-│   ├── local/         # Room entities, DAO, database v6, seed data, DataStoreManager
-│   ├── remote/        # SupabaseClientProvider
-│   └── repository/    # BakaiyaCropRepositoryImpl
-├── di/                # AppContainer (manual DI)
-├── domain/
-│   ├── model/         # BakaiyaCrop, CropCategory, EducationalVideo, FarmerRegistration, YouTubeChannel
-│   ├── registration/  # FarmerRegistrationCoordinator
-│   └── repository/    # BakaiyaCropRepository interface
-├── media/             # VideoDownloadManager, YouTubeLauncher
-├── ui/
-│   ├── components/    # UnderConstructionScreen (shared component)
-│   ├── navigation/    # BottomNavItem, NavHost, MainScaffold
-│   ├── screens/
-│   │   ├── channels/  # YouTubeChannelsScreen
-│   │   ├── crops/     # CropsScreen, CropDetailScreen, ViewModels
-│   │   ├── helpline/  # HelplineScreen (Under Construction)
-│   │   ├── home/      # HomeScreen, ViewModel
-│   │   ├── profile/   # ProfileScreen (Under Construction)
-│   │   ├── registration/ # RegistrationScreen, RegistrationViewModel
-│   │   ├── splash/    # SplashScreen
-│   │   └── videos/    # DownloadedVideosScreen, VideoPlayerScreen
-│   └── theme/         # Color, Theme, Type
-├── worker/            # SyncWorker
-├── KrishiSaathiApp.kt
-├── MainViewModel.kt
-└── MainActivity.kt
-```
+---
 
-## 3. Feature Summary
+## 2. Extension Plan
 
-### Active Features
-1. **Mandatory First-Launch Farmer Registration** — Collects Name, fixed Municipality (`बकैया गाउँपालिका, मकवानपुर।`), Ward (1–12), and Mobile (`+977`) once without OTP, password, or MPIN; persists across Room + DataStore.
-2. **Home Screen** — Welcome header, search pill, category grid, Downloaded Videos & YouTube Channels shortcuts, seasonal/featured crops.
-3. **Crop Categories & Listings** — 6 verified categories with live Nepali, English, and scientific search.
-4. **Crop Detail (22 sections)** — Overview, varieties, season, environmental metrics, 9 cultivation sections, image gallery, video learning.
-5. **YouTube Educational Videos & Channel Directory** — 10 verified YouTube videos, 7 Nepali agricultural YouTube channels, 8-topic filter, YouTube app launch.
-6. **Authorized Offline Downloads & Library** — Media3 ExoPlayer, download/pause/resume/delete, physical file verification.
-
-### Under Construction Destinations
-7. **Farmer Helpline (`किसान हेल्पलाइन`)** — Displays approved Under Construction state (`Icons.Outlined.SupportAgent`, `"निर्माणाधीन"`).
-8. **Profile (`मेरो विवरण`)** — Displays approved Under Construction state (`Icons.Outlined.Construction`, `"निर्माणाधीन"`).
-
-### Removed Modules
-- **Farm Hisab (`फार्म हिसाब` / `farm_records`)** — Removed completely from UI, navigation, domain, DAO, Room schema (`MIGRATION_5_6`), and Supabase initial schema.
-- **Optional Registration Dialog (`RegistrationDialog`)** — Replaced by mandatory first-launch `RegistrationScreen`.
-
-## 4. Database Schema
-
-### Room Entities (v6)
-| Table | Description |
-|---|---|
-| `crop_categories` | 6 agricultural crop categories |
-| `crops` | 8 verified crops with 22 cultivation sections |
-| `crop_images` | 6 Wikimedia Commons crop images |
-| `educational_videos` | 10 YouTube + 2 sample offline videos (12 total) |
-| `helpline_contacts` | Verified municipality schema contacts (not displayed while Helpline UI is Under Construction) |
-| `farmer_registration` | Single-row mandatory farmer registration record (`full_name`, `municipality`, `ward_number`, `phone_number`, `registered_at`) |
-
-## 5. Navigation
-
-4-tab bottom navigation:
-1. `गृहपृष्ठ` (Home)
-2. `बालीहरू` (Crops)
-3. `किसान हेल्पलाइन` (Helpline — Under Construction)
-4. `मेरो विवरण` (Profile — Under Construction)
-
-## 6. Known Limitations
-1. Farmer Profile (`मेरो विवरण`) and Farmer Helpline (`किसान हेल्पलाइन`) are Under Construction placeholders until official management/directory UI is released.
-2. Sample offline videos use Google test bucket MP4s (`isSampleMedia = true`).
-3. Supabase sync currently refreshes seeded local content until live credentials/endpoints are supplied.
-4. Light mode only by design specification.
+1. Keep **Supabase PostgreSQL + Auth + Storage + RLS** as the single authoritative content database (zero competing databases of record), extended cleanly via `003_cms_livestock_and_verification.sql` and `004_verified_crops_and_livestock_seed.sql`.
+2. Build the separate **English-only Web Admin Panel (`admin_web/`)** using Django 6.1 + Pillow 12.3 + server-side RBAC, workflow enforcement, Pillow WebP/JPEG image derivative pipeline (`full`, `medium`, `thumb`), and Supabase/PostgreSQL integration + Public Published Content REST API.
+3. Extend Android app (`app/`) with non-blocking open access, 4-tab navigation (`गृहपृष्ठ`, `बाली`, `पशुपालन`, `किसान हेल्पलाइन`), dedicated **`निशुल्क कृषि प्राविधिक सेवा`** icon, full extensible 25-section Livestock module, restored `ACTION_DIAL` Helpline, fixed verified Wikimedia image assets, and remote published content sync with offline Room fallback.

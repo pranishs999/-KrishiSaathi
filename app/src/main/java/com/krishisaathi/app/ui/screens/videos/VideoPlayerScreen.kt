@@ -105,7 +105,14 @@ fun VideoPlayerScreen(
         }
     ) { innerPadding ->
         val currentVideo = video
-        val localFile = currentVideo?.localFilePath?.let { File(it) }
+        val allowedVideoRoot = remember(context) {
+            File(context.filesDir, "authorized_videos").canonicalFile
+        }
+        val localFile = currentVideo?.localFilePath?.let { path ->
+            runCatching { File(path).canonicalFile }.getOrNull()
+        }
+        val isPathWithinAllowedDir = localFile != null &&
+                localFile.path.startsWith(allowedVideoRoot.path + File.separator)
 
         if (currentVideo == null) {
             Box(
@@ -116,7 +123,7 @@ fun VideoPlayerScreen(
             ) {
                 CircularProgressIndicator(color = ForestGreen)
             }
-        } else if (!currentVideo.downloadPermission || localFile == null || !localFile.exists()) {
+        } else if (!currentVideo.downloadPermission || localFile == null || !isPathWithinAllowedDir || !localFile.exists()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()

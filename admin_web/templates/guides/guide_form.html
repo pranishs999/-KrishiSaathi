@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}नयाँ खेती विधि निर्देशिका - कृषि साथी{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight">नयाँ खेती निर्देशिका सिर्जना गर्नुहोस्</h1>
+            <p class="text-sm text-slate-600 mt-1">बाली अनुसार चरणबद्ध रूपमा खेती गर्ने प्रविधि तयार गर्नुहोस्।</p>
+        </div>
+        <a href="{% url 'guides:list' %}" class="text-sm font-semibold text-slate-500 hover:text-slate-800">← सूचीमा फर्कनुहोस्</a>
+    </div>
+
+    <div class="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-1">सम्बन्धित बाली (Crop) *</label>
+                <select name="crop_id" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-agro-600 bg-white">
+                    <option value="">बाली छान्नुहोस्...</option>
+                    {% for c in crops %}
+                    <option value="{{ c.id }}">{{ c.name_ne }} ({{ c.name_en }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-1">निर्देशिका शीर्षक (नेपाली) *</label>
+                <input type="text" name="title_ne" required placeholder="उदा: वर्षे धान उत्पादन पूर्ण प्रविधि" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-agro-600">
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-1">Title (English) *</label>
+                <input type="text" name="title_en" required placeholder="e.g. Monsoon Paddy Cultivation Guide" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-agro-600">
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-1">सारांश (Summary in Nepali) *</label>
+                <textarea name="summary_ne" rows="3" required placeholder="यस निर्देशिकाको छोटो परिचय..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-agro-600"></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">विषय (Topic)</label>
+                    <select name="topic_id" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-agro-600 bg-white">
+                        <option value="">छान्नुहोस्...</option>
+                        {% for t in topics %}
+                        <option value="{{ t.id }}">{{ t.name_ne }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">मौसम (Season)</label>
+                    <select name="season_id" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-agro-600 bg-white">
+                        <option value="">छान्नुहोस्...</option>
+                        {% for s in seasons %}
+                        <option value="{{ s.id }}">{{ s.name_ne }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">क्षेत्र (Region)</label>
+                    <select name="region_id" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-agro-600 bg-white">
+                        <option value="">छान्नुहोस्...</option>
+                        {% for r in regions %}
+                        <option value="{{ r.id }}">{{ r.name_ne }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                <input type="checkbox" id="is_published" name="is_published" checked class="w-4 h-4 text-agro-700 rounded border-slate-300 focus:ring-agro-600">
+                <label for="is_published" class="text-sm font-bold text-slate-800">तत्काल प्रकाशित गर्नुहोस् (Publish directly to app)</label>
+            </div>
+
+            <div class="flex justify-end space-x-4 pt-4 border-t border-slate-100">
+                <a href="{% url 'guides:list' %}" class="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-sm font-bold hover:bg-slate-50 transition">रद्द गर्नुहोस्</a>
+                <button type="submit" class="px-6 py-2.5 rounded-xl bg-agro-700 text-white text-sm font-bold hover:bg-agro-800 transition shadow-sm">
+                    <i class="fa-solid fa-arrow-right mr-2"></i>निर्देशिका बनाई चरण थप्नुहोस्
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

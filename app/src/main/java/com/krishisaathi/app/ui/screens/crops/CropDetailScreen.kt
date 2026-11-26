@@ -6,7 +6,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,6 +33,7 @@ import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Layers
+import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Pause
 import androidx.compose.material.icons.outlined.PlayCircleOutline
 import androidx.compose.material.icons.outlined.Science
@@ -77,8 +81,11 @@ import androidx.compose.ui.window.DialogProperties
 import coil.compose.SubcomposeAsyncImage
 import com.krishisaathi.app.core.util.ValidationUtils
 import com.krishisaathi.app.domain.model.BakaiyaCrop
+import com.krishisaathi.app.domain.model.CropGrowingCondition
 import com.krishisaathi.app.domain.model.CropImage
+import com.krishisaathi.app.domain.model.CropVarietyRequirement
 import com.krishisaathi.app.domain.model.EducationalVideo
+import com.krishisaathi.app.domain.model.NepalEcologicalZone
 import com.krishisaathi.app.domain.model.VideoTopic
 import com.krishisaathi.app.media.VideoDownloadState
 import com.krishisaathi.app.media.YouTubeLaunchResult
@@ -209,8 +216,13 @@ fun CropDetailScreen(
                     }
                 }
 
-                // Sections 5 - 11: Structured Environmental Requirement Cards (Section 6.5)
-                EnvironmentalRequirementsSection(crop = crop)
+                // Sections 5 - 11: Growing Conditions & Requirements + Nepal Suitability + Variety Requirements
+                EnvironmentalRequirementsSection(
+                    crop = crop,
+                    varietyRequirements = state.varietyRequirements,
+                    selectedVarietyId = state.selectedVarietyId,
+                    onSelectVariety = viewModel::selectVariety
+                )
 
                 // Sections 12 - 20: Cultivation Guidance (Expandable numbered instructions)
                 Text(
@@ -220,17 +232,19 @@ fun CropDetailScreen(
                     color = ForestGreen
                 )
 
-                val cultivationSections = listOf(
-                    Triple("१२", "जग्गा तयारी", crop.landPreparation),
-                    Triple("१३", "बीउ छनोट तथा रोपाइँ", crop.seedSelection),
-                    Triple("१४", "दूरी तथा रोपाइँ विधि", crop.spacing),
-                    Triple("१५", "मलखाद तथा पोषण व्यवस्थापन", crop.fertilizer),
-                    Triple("१६", "सिँचाइ व्यवस्थापन", crop.irrigation),
-                    Triple("१७", "बालीको हेरचाह", crop.cropCare),
-                    Triple("१८", "रोग तथा कीरा व्यवस्थापन", crop.pestDiseaseControl),
-                    Triple("१९", "कटानी", crop.harvesting),
-                    Triple("२०", "उत्पादन तथा भण्डारण", crop.storage)
-                ).filter { !it.third.isNullOrBlank() }
+                val cultivationSections = remember(crop) {
+                    listOf(
+                        Triple("१२", "जग्गा तयारी", crop.landPreparation),
+                        Triple("१३", "बीउ छनोट तथा रोपाइँ", crop.seedSelection),
+                        Triple("१४", "दूरी तथा रोपाइँ विधि", crop.spacing),
+                        Triple("१५", "मलखाद तथा पोषण व्यवस्थापन", crop.fertilizer),
+                        Triple("१६", "सिँचाइ व्यवस्थापन", crop.irrigation),
+                        Triple("१७", "बालीको हेरचाह", crop.cropCare),
+                        Triple("१८", "रोग तथा कीरा व्यवस्थापन", crop.pestDiseaseControl),
+                        Triple("१९", "कटानी", crop.harvesting),
+                        Triple("२०", "उत्पादन तथा भण्डारण", crop.storage)
+                    ).filter { !it.third.isNullOrBlank() }
+                }
 
                 cultivationSections.forEachIndexed { idx, (num, title, content) ->
                     ExpandableSectionCard(
@@ -371,95 +385,393 @@ private fun CropOverviewHeaderCard(crop: BakaiyaCrop) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun EnvironmentalRequirementsSection(crop: BakaiyaCrop) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text(
-            text = "वातावरणीय आवश्यकता (५ - ११)",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = ForestGreen
-        )
+private fun EnvironmentalRequirementsSection(
+    crop: BakaiyaCrop,
+    varietyRequirements: List<CropVarietyRequirement>,
+    selectedVarietyId: String?,
+    onSelectVariety: (String?) -> Unit
+) {
+    val c = crop.growingConditions
+    val selectedVariety = varietyRequirements.find { it.id == selectedVarietyId }
+    var detailedSoilAndTimingExpanded by remember { mutableStateOf(false) }
 
-        val tempText = if (crop.tempMin != null && crop.tempMax != null) {
-            "${crop.tempMin.toInt()}°C देखि ${crop.tempMax.toInt()}°C"
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                text = "वातावरणीय आवश्यकता (५ - ११)",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = ForestGreen
+            )
+            Text(
+                text = "Growing Conditions & Requirements",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MutedGreenGrey
+            )
+            c.lastUpdatedDate?.let { updated ->
+                Text(
+                    text = "अद्यावधिक मिति: $updated",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MutedGreenGrey
+                )
+            }
+        }
+
+        val altitudeText = buildAltitudeSummary(c)
+        val soilText = buildSoilSummary(c)
+        val tempText = buildTemperatureSummary(c)
+        val humidityText = if (c.humidityMin != null && c.humidityMax != null) {
+            "${c.humidityMin.toInt()}% देखि ${c.humidityMax.toInt()}%"
         } else {
             "जानकारी उपलब्ध छैन"
         }
-
-        val humidityText = if (crop.humidityMin != null && crop.humidityMax != null) {
-            "${crop.humidityMin.toInt()}% देखि ${crop.humidityMax.toInt()}%"
+        val rainfallText = if (c.rainfallMinMm != null && c.rainfallMaxMm != null) {
+            val periodSuffix = c.rainfallPeriodLabelNe?.let { " ($it)" } ?: ""
+            "${c.rainfallMinMm} देखि ${c.rainfallMaxMm} mm$periodSuffix"
         } else {
             "जानकारी उपलब्ध छैन"
         }
+        val waterText = c.waterRequirementNe ?: "जानकारी उपलब्ध छैन"
+        val sunlightText = c.sunlightNe ?: "जानकारी उपलब्ध छैन"
+        val seasonText = buildSeasonSummary(c)
 
-        val phText = if (crop.soilPhMin != null && crop.soilPhMax != null) {
-            "${crop.soilPhMin} देखि ${crop.soilPhMax}"
-        } else {
-            "जानकारी उपलब्ध छैन"
+        // Responsive cards supporting narrow (<360dp) and standard Android screens
+        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+            val useSingleColumn = maxWidth < 340.dp
+            val metricPairs = listOf(
+                Triple(Icons.Outlined.Terrain, "५. उचाइ (Altitude)", altitudeText) to
+                        Triple(Icons.Outlined.Layers, "६. माटो (Soil)", soilText),
+                Triple(Icons.Outlined.Thermostat, "७. तापक्रम (Temperature)", tempText) to
+                        Triple(Icons.Outlined.WaterDrop, "८. सापेक्षिक आर्द्रता (Humidity)", humidityText),
+                Triple(Icons.Outlined.WaterDrop, "९. वर्षा आवश्यकता (Rainfall)", rainfallText) to
+                        Triple(Icons.Outlined.WaterDrop, "१०. पानी / सिँचाइ (Water)", waterText),
+                Triple(Icons.Outlined.WbSunny, "११. घामको आवश्यकता (Sunlight)", sunlightText) to
+                        Triple(Icons.Outlined.CalendarMonth, "खेती र कटानी समय (Season)", seasonText)
+            )
+
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                metricPairs.forEach { (firstCard, secondCard) ->
+                    if (useSingleColumn) {
+                        EnvironmentMetricCard(
+                            icon = firstCard.first,
+                            title = firstCard.second,
+                            value = firstCard.third,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        EnvironmentMetricCard(
+                            icon = secondCard.first,
+                            title = secondCard.second,
+                            value = secondCard.third,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            EnvironmentMetricCard(
+                                icon = firstCard.first,
+                                title = firstCard.second,
+                                value = firstCard.third,
+                                modifier = Modifier.weight(1f)
+                            )
+                            EnvironmentMetricCard(
+                                icon = secondCard.first,
+                                title = secondCard.second,
+                                value = secondCard.third,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                }
+            }
         }
 
-        // Structured 2-column grid of Environmental Cards (Section 6.5)
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            EnvironmentMetricCard(
-                icon = Icons.Outlined.Thermostat,
-                title = "५. तापक्रम",
-                value = tempText,
-                modifier = Modifier.weight(1f)
-            )
-            EnvironmentMetricCard(
-                icon = Icons.Outlined.WaterDrop,
-                title = "६. सापेक्षिक आर्द्रता",
-                value = humidityText,
-                modifier = Modifier.weight(1f)
-            )
+        // Nepal Geographical Suitability Card
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = LightGreen),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Outlined.LocationOn,
+                        contentDescription = null,
+                        tint = ForestGreen,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "नेपालका क्षेत्र अनुसार उपयुक्तता (Nepal Suitability)",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = ForestGreen
+                    )
+                }
+
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    NepalEcologicalZone.entries.forEach { zone ->
+                        val isSuitable = c.suitableZones.contains(zone)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(50))
+                                .background(if (isSuitable) ForestGreen else SoftSage)
+                                .padding(horizontal = 10.dp, vertical = 5.dp)
+                        ) {
+                            if (isSuitable) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Verified,
+                                    contentDescription = null,
+                                    tint = NaturalIvory,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                            }
+                            Text(
+                                text = zone.nameNe,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = if (isSuitable) FontWeight.Bold else FontWeight.Normal,
+                                color = if (isSuitable) NaturalIvory else MutedGreenGrey
+                            )
+                        }
+                    }
+                }
+
+                DetailInfoLine(
+                    label = "उपयुक्त क्षेत्रहरू",
+                    value = c.suitableRegionsNe ?: "जानकारी उपलब्ध छैन"
+                )
+                c.altitudeGrowthNotesNe?.takeIf { it.isNotBlank() }?.let { notes ->
+                    HorizontalDivider(color = DividerSage, thickness = 1.dp)
+                    DetailInfoLine(
+                        label = "उचाइ अनुसार बाली वृद्धि प्रभाव",
+                        value = notes
+                    )
+                }
+            }
         }
 
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            EnvironmentMetricCard(
-                icon = Icons.Outlined.Layers,
-                title = "७. माटोको प्रकार",
-                value = crop.soilTypes ?: "जानकारी उपलब्ध छैन",
-                modifier = Modifier.weight(1f)
-            )
-            EnvironmentMetricCard(
-                icon = Icons.Outlined.Science,
-                title = "८. माटोको pH",
-                value = phText,
-                modifier = Modifier.weight(1f)
-            )
+        // Expandable Detailed Soil, Moisture & Cultivation Timing Breakdown
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = LightGreen),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { detailedSoilAndTimingExpanded = !detailedSoilAndTimingExpanded }
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "माटो, हावापानी तथा बाली अवधिको विस्तृत विवरण",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = DeepCharcoal,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Icon(
+                        imageVector = if (detailedSoilAndTimingExpanded) {
+                            Icons.Outlined.ExpandLess
+                        } else {
+                            Icons.Outlined.ExpandMore
+                        },
+                        contentDescription = null,
+                        tint = ForestGreen
+                    )
+                }
+
+                AnimatedVisibility(visible = detailedSoilAndTimingExpanded) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        HorizontalDivider(color = DividerSage, thickness = 1.dp)
+                        DetailInfoLine("माटोको बनावट (Texture)", c.soilTextureNe ?: "जानकारी उपलब्ध छैन")
+                        DetailInfoLine("पानी निकास (Drainage)", c.soilDrainageNe ?: "जानकारी उपलब्ध छैन")
+                        DetailInfoLine("उर्वराशक्ति (Fertility)", c.soilFertilityNe ?: "जानकारी उपलब्ध छैन")
+                        DetailInfoLine("प्राङ्गारिक पदार्थ (Organic Matter)", c.soilOrganicMatterNe ?: "जानकारी उपलब्ध छैन")
+                        HorizontalDivider(color = DividerSage, thickness = 1.dp)
+                        DetailInfoLine("बीउ छर्ने / रोप्ने समय (Sowing)", c.sowingPeriodNe ?: "जानकारी उपलब्ध छैन")
+                        DetailInfoLine("बेर्ना सार्ने समय (Transplanting)", c.transplantingPeriodNe ?: "सीधै रोपिने / लागू नहुने")
+                        DetailInfoLine("बाली अवधि (Growing Duration)", c.growingDurationNe ?: "जानकारी उपलब्ध छैन")
+                        DetailInfoLine("कटानी समय (Harvesting Period)", c.harvestingPeriodNe ?: "जानकारी उपलब्ध छैन")
+                        c.specialConsiderationsNe?.takeIf { it.isNotBlank() }?.let { note ->
+                            DetailInfoLine("विशेष वातावरणीय सावधानी", note)
+                        }
+                        DetailInfoLine(
+                            label = "स्रोत सन्दर्भ र मिति",
+                            value = "${crop.sourceReference}${c.lastUpdatedDate?.let { " • अद्यावधिक: $it" } ?: ""}"
+                        )
+                    }
+                }
+            }
         }
 
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            EnvironmentMetricCard(
-                icon = Icons.Outlined.WbSunny,
-                title = "९. घामको आवश्यकता",
-                value = crop.sunlight ?: "जानकारी उपलब्ध छैन",
-                modifier = Modifier.weight(1f)
-            )
-            EnvironmentMetricCard(
-                icon = Icons.Outlined.WaterDrop,
-                title = "१०. पानीको आवश्यकता",
-                value = crop.waterRequirement ?: "जानकारी उपलब्ध छैन",
-                modifier = Modifier.weight(1f)
-            )
-        }
+        // Variety-Specific Growing Conditions Selector
+        if (varietyRequirements.isNotEmpty()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = LightGreen),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text(
+                        text = "जात अनुसार वातावरणीय विवरण (Variety Requirements)",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = ForestGreen
+                    )
 
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            EnvironmentMetricCard(
-                icon = Icons.Outlined.Terrain,
-                title = "११. उपयुक्त उचाइ",
-                value = crop.altitude ?: "जानकारी उपलब्ध छैन",
-                modifier = Modifier.weight(1f)
-            )
-            EnvironmentMetricCard(
-                icon = Icons.Outlined.CalendarMonth,
-                title = "रोपाइँ मौसम",
-                value = crop.plantingSeason ?: "जानकारी उपलब्ध छैन",
-                modifier = Modifier.weight(1f)
-            )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        varietyRequirements.forEach { variety ->
+                            val isSelected = selectedVariety?.id == variety.id
+                            FilterChip(
+                                selected = isSelected,
+                                onClick = {
+                                    onSelectVariety(if (isSelected) null else variety.id)
+                                },
+                                label = { Text(variety.varietyNameNe) },
+                                shape = RoundedCornerShape(50),
+                                border = null,
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = ForestGreen,
+                                    selectedLabelColor = NaturalIvory,
+                                    containerColor = SoftSage,
+                                    labelColor = DeepCharcoal
+                                )
+                            )
+                        }
+                    }
+
+                    if (selectedVariety != null) {
+                        val vc = selectedVariety.growingConditions
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(SoftSage)
+                                .padding(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text(
+                                text = "${selectedVariety.varietyNameNe}${selectedVariety.varietyNameEn?.let { " ($it)" } ?: ""}",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = ForestGreen
+                            )
+                            DetailInfoLine(
+                                label = "उपयुक्त उचाइ",
+                                value = buildAltitudeSummary(vc)
+                            )
+                            DetailInfoLine(
+                                label = "उपयुक्त क्षेत्र",
+                                value = vc.suitableRegionsNe ?: "जानकारी उपलब्ध छैन"
+                            )
+                            DetailInfoLine(
+                                label = "रोपाइँ समय / बाली अवधि",
+                                value = "${vc.plantingSeasonNe ?: vc.transplantingPeriodNe ?: "जानकारी उपलब्ध छैन"} • अवधि: ${vc.growingDurationNe ?: "जानकारी उपलब्ध छैन"}"
+                            )
+                            selectedVariety.notesNe?.takeIf { it.isNotBlank() }?.let { notes ->
+                                DetailInfoLine("जात विशेष जानकारी", notes)
+                            }
+                            DetailInfoLine(
+                                label = "स्रोत",
+                                value = vc.sourceReference
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = "जात अनुसार उचाइ, क्षेत्र र पाक्ने अवधि हेर्न माथि दिइएको जात छान्नुहोस्।",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MutedGreenGrey
+                        )
+                    }
+                }
+            }
         }
     }
+}
+
+private fun buildAltitudeSummary(c: CropGrowingCondition): String {
+    val bounds = listOfNotNull(
+        c.altitudeMinMeters?.let { "न्यूनतम: $it m" },
+        if (c.altitudeOptimalMinMeters != null && c.altitudeOptimalMaxMeters != null) {
+            "उपयुक्त: ${c.altitudeOptimalMinMeters}-${c.altitudeOptimalMaxMeters} m"
+        } else null,
+        c.altitudeMaxMeters?.let { "अधिकतम: $it m" }
+    )
+    return when {
+        bounds.isNotEmpty() && !c.altitudeSummaryNe.isNullOrBlank() ->
+            "${bounds.joinToString("\n")}\n(${c.altitudeSummaryNe})"
+        bounds.isNotEmpty() -> bounds.joinToString("\n")
+        !c.altitudeSummaryNe.isNullOrBlank() -> c.altitudeSummaryNe
+        else -> "जानकारी उपलब्ध छैन"
+    }
+}
+
+private fun buildSoilSummary(c: CropGrowingCondition): String {
+    val parts = mutableListOf<String>()
+    c.soilTypesNe?.takeIf { it.isNotBlank() }?.let { parts.add(it) }
+    if (c.soilPhMin != null && c.soilPhMax != null) {
+        parts.add("pH: ${c.soilPhMin} - ${c.soilPhMax}")
+    }
+    c.soilDrainageNe?.takeIf { it.isNotBlank() }?.let { parts.add("निकास: $it") }
+    return if (parts.isEmpty()) "जानकारी उपलब्ध छैन" else parts.joinToString("\n")
+}
+
+private fun buildTemperatureSummary(c: CropGrowingCondition): String {
+    val lines = mutableListOf<String>()
+    if (c.tempMin != null && c.tempMax != null) {
+        lines.add("सहनशील: ${c.tempMin.toInt()}°C - ${c.tempMax.toInt()}°C")
+    } else if (c.tempMin != null) {
+        lines.add("न्यूनतम: ${c.tempMin.toInt()}°C")
+    } else if (c.tempMax != null) {
+        lines.add("अधिकतम: ${c.tempMax.toInt()}°C")
+    }
+    if (c.tempOptimalMin != null && c.tempOptimalMax != null) {
+        lines.add("उपयुक्त: ${c.tempOptimalMin.toInt()}°C - ${c.tempOptimalMax.toInt()}°C")
+    }
+    return if (lines.isEmpty()) "जानकारी उपलब्ध छैन" else lines.joinToString("\n")
+}
+
+private fun buildSeasonSummary(c: CropGrowingCondition): String {
+    val lines = mutableListOf<String>()
+    c.plantingSeasonNe?.takeIf { it.isNotBlank() }?.let { lines.add("रोपाइँ: $it") }
+    c.growingDurationNe?.takeIf { it.isNotBlank() }?.let { lines.add("अवधि: $it") }
+    c.harvestingPeriodNe?.takeIf { it.isNotBlank() }?.let { lines.add("कटानी: $it") }
+    return if (lines.isEmpty()) "जानकारी उपलब्ध छैन" else lines.joinToString("\n")
 }
 
 @Composable

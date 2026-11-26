@@ -1,3 +1,4 @@
+com.krishisaathi.app:xml/network_security_config = 0x7f100003
 com.krishisaathi.app:xml/image_share_filepaths = 0x7f100002
 com.krishisaathi.app:xml/data_extraction_rules = 0x7f100001
 com.krishisaathi.app:styleable/StateListDrawableItem = 0x7f0f001e

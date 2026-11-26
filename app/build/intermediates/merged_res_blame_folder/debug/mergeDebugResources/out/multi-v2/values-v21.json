@@ -4,26 +4,7 @@
             "outputFile": "com.krishisaathi.app-mergeDebugResources-63:/values-v21/values-v21.xml",
             "map": [
                 {
-                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/492c47f369f320e71ec5a3176a27eb9f/transformed/core-1.16.0/res/values-v21/values-v21.xml",
-                    "from": {
-                        "startLines": "2,3,4,5,6,7,8,9,10,13",
-                        "startColumns": "4,4,4,4,4,4,4,4,4,4",
-                        "startOffsets": "55,173,237,304,368,484,610,736,864,1036",
-                        "endLines": "2,3,4,5,6,7,8,9,12,17",
-                        "endColumns": "117,63,66,63,115,125,125,127,12,12",
-                        "endOffsets": "168,232,299,363,479,605,731,859,1031,1383"
-                    },
-                    "to": {
-                        "startLines": "2,4,5,6,12,13,20,24,28,31",
-                        "startColumns": "4,4,4,4,4,4,4,4,4,4",
-                        "startOffsets": "55,232,296,363,714,830,1287,1581,1876,2048",
-                        "endLines": "2,4,5,6,12,13,20,24,30,35",
-                        "endColumns": "117,63,66,63,115,125,125,127,12,12",
-                        "endOffsets": "168,291,358,422,825,951,1408,1704,2043,2395"
-                    }
-                },
-                {
-                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/30687b70e91d916e58bf6807c81a8882/transformed/media3-ui-1.5.1/res/values-v21/values-v21.xml",
+                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/6107c396928717ea685e502b11fd421e/transformed/media3-ui-1.5.1/res/values-v21/values-v21.xml",
                     "from": {
                         "startLines": "2,3",
                         "startColumns": "4,4",
@@ -42,7 +23,26 @@
                     }
                 },
                 {
-                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/58d4da8be2bf1c77bdf2e3646db5cb98/transformed/media-1.7.0/res/values-v21/values-v21.xml",
+                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/f4d9a39153974de6bc6ee99393d36ec8/transformed/core-1.16.0/res/values-v21/values-v21.xml",
+                    "from": {
+                        "startLines": "2,3,4,5,6,7,8,9,10,13",
+                        "startColumns": "4,4,4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,173,237,304,368,484,610,736,864,1036",
+                        "endLines": "2,3,4,5,6,7,8,9,12,17",
+                        "endColumns": "117,63,66,63,115,125,125,127,12,12",
+                        "endOffsets": "168,232,299,363,479,605,731,859,1031,1383"
+                    },
+                    "to": {
+                        "startLines": "2,4,5,6,12,13,20,24,28,31",
+                        "startColumns": "4,4,4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,232,296,363,714,830,1287,1581,1876,2048",
+                        "endLines": "2,4,5,6,12,13,20,24,30,35",
+                        "endColumns": "117,63,66,63,115,125,125,127,12,12",
+                        "endOffsets": "168,291,358,422,825,951,1408,1704,2043,2395"
+                    }
+                },
+                {
+                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/832b2647f118c4932319135d66b8861d/transformed/media-1.7.0/res/values-v21/values-v21.xml",
                     "from": {
                         "startLines": "2,5,8,11",
                         "startColumns": "4,4,4,4",

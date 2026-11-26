@@ -4,7 +4,7 @@ package com.krishisaathi.app.ui.navigation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Agriculture
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Pets
 import androidx.compose.material.icons.outlined.SupportAgent
 import androidx.compose.ui.graphics.vector.ImageVector
 
@@ -21,8 +21,14 @@ sealed class BottomNavItem(
 
     data object Crops : BottomNavItem(
         route = "crops",
-        title = "बालीहरू",
+        title = "बाली",
         icon = Icons.Outlined.Agriculture
+    )
+
+    data object Livestock : BottomNavItem(
+        route = "livestock",
+        title = "पशुपालन",
+        icon = Icons.Outlined.Pets
     )
 
     data object Helpline : BottomNavItem(
@@ -30,18 +36,12 @@ sealed class BottomNavItem(
         title = "किसान हेल्पलाइन",
         icon = Icons.Outlined.SupportAgent
     )
-
-    data object Profile : BottomNavItem(
-        route = "profile",
-        title = "मेरो विवरण",
-        icon = Icons.Outlined.Person
-    )
 }
 
-// Explicit 4-tab navigation destination list.
+// Exact 4-tab navigation per Section 3: गृहपृष्ठ, बाली, पशुपालन, किसान हेल्पलाइन
 val bottomNavItems: List<BottomNavItem> = listOf(
     BottomNavItem.Home,
     BottomNavItem.Crops,
-    BottomNavItem.Helpline,
-    BottomNavItem.Profile
+    BottomNavItem.Livestock,
+    BottomNavItem.Helpline
 )

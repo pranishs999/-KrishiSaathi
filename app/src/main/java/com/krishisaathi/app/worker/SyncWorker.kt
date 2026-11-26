@@ -2,6 +2,7 @@ package com.krishisaathi.app.worker
 
 import android.content.Context
 import android.util.Log
+import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -9,6 +10,7 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import com.krishisaathi.app.BuildConfig
 import com.krishisaathi.app.KrishiSaathiApp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -34,6 +36,7 @@ class SyncWorker(
 
             val syncRequest = PeriodicWorkRequestBuilder<SyncWorker>(12, TimeUnit.HOURS)
                 .setConstraints(constraints)
+                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 15, TimeUnit.MINUTES)
                 .build()
 
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
@@ -45,7 +48,9 @@ class SyncWorker(
     }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
-        Log.d(TAG, "Refreshing Bakaiya agricultural knowledge cache...")
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "Refreshing Bakaiya agricultural knowledge cache...")
+        }
         try {
             val appContainer = (applicationContext as KrishiSaathiApp).appContainer
             val result = appContainer.bakaiyaCropRepository.syncRemoteContent()
@@ -55,8 +60,10 @@ class SyncWorker(
             } else {
                 Result.retry()
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "Background content refresh failed: ${e.message}")
+        } catch (_: Exception) {
+            if (BuildConfig.DEBUG) {
+                Log.w(TAG, "Background content refresh failed; scheduling retry.")
+            }
             Result.retry()
         }
     }

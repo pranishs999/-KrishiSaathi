@@ -4,7 +4,7 @@
             "outputFile": "com.krishisaathi.app-mergeDebugResources-63:/values-v23/values-v23.xml",
             "map": [
                 {
-                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/25b2a2bf8f9ff6adc4135a2710b48226/transformed/work-runtime-2.10.0/res/values-v23/values-v23.xml",
+                    "source": "/home/pranish/.gradle/caches/9.9.2/transforms/bcee96f5690179c090aaccd720742a56/transformed/work-runtime-2.10.0/res/values-v23/values-v23.xml",
                     "from": {
                         "startLines": "2,3",
                         "startColumns": "4,4",

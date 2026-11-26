@@ -24,10 +24,13 @@ import androidx.compose.material.icons.outlined.DownloadDone
 import androidx.compose.material.icons.outlined.Eco
 import androidx.compose.material.icons.outlined.Grass
 import androidx.compose.material.icons.outlined.Park
+import androidx.compose.material.icons.outlined.PersonAdd
+import androidx.compose.material.icons.outlined.Pets
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Spa
 import androidx.compose.material.icons.outlined.Storefront
+import androidx.compose.material.icons.outlined.SupportAgent
 import androidx.compose.material.icons.outlined.WaterDrop
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -43,10 +46,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.SubcomposeAsyncImage
+import coil.request.ImageRequest
 import com.krishisaathi.app.domain.model.BakaiyaCrop
 import com.krishisaathi.app.domain.model.CropCategory
 import com.krishisaathi.app.ui.theme.DeepCharcoal
@@ -64,8 +69,11 @@ fun HomeScreen(
     viewModel: HomeViewModel,
     onNavigateToCrops: (String?) -> Unit,
     onNavigateToCropDetail: (String) -> Unit,
+    onNavigateToLivestock: () -> Unit = {},
+    onNavigateToHelpline: () -> Unit = {},
     onNavigateToDownloadedVideos: () -> Unit,
     onNavigateToYouTubeChannels: () -> Unit,
+    onNavigateToOptionalRegistration: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -310,6 +318,120 @@ fun HomeScreen(
                 )
             }
         }
+
+        // Livestock Knowledge Shortcut Card
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onNavigateToLivestock),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = LightGreen),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Pets,
+                    contentDescription = "पशुपालन",
+                    tint = ForestGreen,
+                    modifier = Modifier.size(32.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "पशुपालन तथा मत्स्यपालन ज्ञान",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = ForestGreen
+                    )
+                    Text(
+                        text = "गाई, भैंसी, बाख्रा, कुखुरा, बंगुर र माछापालन सम्बन्धी प्रमाणित मार्गदर्शन",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = DeepCharcoal
+                    )
+                }
+            }
+        }
+
+        // Prominent Free Agricultural & Veterinary Helpline Card
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onNavigateToHelpline),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = ForestGreen),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.SupportAgent,
+                    contentDescription = "निशुल्क कृषि प्राविधिक सेवा",
+                    tint = NaturalIvory,
+                    modifier = Modifier.size(32.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "निःशुल्क कृषि प्राविधिक सेवा",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = NaturalIvory
+                    )
+                    Text(
+                        text = "बकैया गाउँपालिका कृषि शाखा तथा मकवानपुर पशु सेवा विज्ञ केन्द्रमा प्रत्यक्ष फोन सम्पर्क",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = NaturalIvory.copy(alpha = 0.9f)
+                    )
+                }
+            }
+        }
+
+        // Optional Non-Blocking Farmer Registration Card
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onNavigateToOptionalRegistration),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = SoftSage),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.PersonAdd,
+                    contentDescription = "किसान दर्ता",
+                    tint = ForestGreen,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "किसान विवरण दर्ता (ऐच्छिक)",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = DeepCharcoal
+                    )
+                    Text(
+                        text = "स्थानीय कृषि सेवा समन्वयका लागि आफ्नो नाम र वडा सुरक्षित गर्नुहोस्",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MutedGreenGrey
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -442,8 +564,12 @@ fun CropThumbnailImage(
                 modifier = Modifier.size(32.dp)
             )
         } else {
+            val context = LocalContext.current
             SubcomposeAsyncImage(
-                model = imageUrl,
+                model = ImageRequest.Builder(context)
+                    .data(imageUrl)
+                    .crossfade(true)
+                    .build(),
                 contentDescription = contentDescription,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),

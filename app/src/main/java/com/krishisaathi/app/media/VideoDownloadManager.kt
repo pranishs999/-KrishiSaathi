@@ -88,7 +88,8 @@ class VideoDownloadManager(
             return
         }
 
-        val targetFile = File(videoDirectory, "${video.id}.mp4")
+        val safeFileKey = sanitizeFileId(video.id)
+        val targetFile = File(videoDirectory, "$safeFileKey.mp4")
         if (targetFile.exists() && targetFile.length() > 0L) {
             scope.launch {
                 repository.markVideoDownloaded(video.id, targetFile.absolutePath, targetFile.length())
@@ -108,7 +109,7 @@ class VideoDownloadManager(
             return
         }
 
-        val partFile = File(videoDirectory, "${video.id}.mp4.part")
+        val partFile = File(videoDirectory, "$safeFileKey.mp4.part")
 
         val job = scope.launch {
             var connection: HttpURLConnection? = null
@@ -116,15 +117,17 @@ class VideoDownloadManager(
             var output: FileOutputStream? = null
             try {
                 val existingBytes = if (partFile.exists()) partFile.length() else 0L
-                val url = URL(video.downloadableFileUrl!!)
-                connection = (url.openConnection() as HttpURLConnection).apply {
-                    connectTimeout = 15_000
-                    readTimeout = 20_000
-                    if (existingBytes > 0L) {
-                        setRequestProperty("Range", "bytes=$existingBytes-")
-                    }
+                connection = openHttpsConnectionWithRedirectGuard(
+                    initialUrl = video.downloadableFileUrl!!,
+                    existingBytes = existingBytes
+                )
+                if (connection == null) {
+                    updateState(
+                        video.id,
+                        VideoDownloadState.Failed("असुरक्षित जडान अस्वीकार गरियो। कृपया HTTPS स्रोत प्रयोग गर्नुहोस्।")
+                    )
+                    return@launch
                 }
-                connection.connect()
 
                 val responseCode = connection.responseCode
                 val isResumed = responseCode == HttpURLConnection.HTTP_PARTIAL && existingBytes > 0L
@@ -239,12 +242,51 @@ class VideoDownloadManager(
     fun deleteVideo(videoId: String) {
         activeJobs[videoId]?.cancel()
         activeJobs.remove(videoId)
+        val safeFileKey = sanitizeFileId(videoId)
         scope.launch {
-            val partFile = File(videoDirectory, "${videoId}.mp4.part")
+            val partFile = File(videoDirectory, "$safeFileKey.mp4.part")
             if (partFile.exists()) partFile.delete()
             repository.deleteDownloadedVideo(videoId)
             updateState(videoId, VideoDownloadState.Idle)
         }
+    }
+
+    private fun sanitizeFileId(videoId: String): String {
+        return videoId.replace(Regex("[^a-zA-Z0-9_-]"), "_").ifBlank { "video" }
+    }
+
+    private fun openHttpsConnectionWithRedirectGuard(
+        initialUrl: String,
+        existingBytes: Long
+    ): HttpURLConnection? {
+        var currentUrl = initialUrl
+        repeat(4) {
+            val parsed = URL(currentUrl)
+            if (!parsed.protocol.equals("https", ignoreCase = true)) {
+                return null
+            }
+            val conn = (parsed.openConnection() as HttpURLConnection).apply {
+                connectTimeout = 15_000
+                readTimeout = 20_000
+                instanceFollowRedirects = false
+                if (existingBytes > 0L) {
+                    setRequestProperty("Range", "bytes=$existingBytes-")
+                }
+            }
+            conn.connect()
+            val code = conn.responseCode
+            if (code in 300..399) {
+                val location = conn.getHeaderField("Location")?.trim()
+                conn.disconnect()
+                if (location.isNullOrBlank() || !location.startsWith("https://", ignoreCase = true)) {
+                    return null
+                }
+                currentUrl = location
+            } else {
+                return conn
+            }
+        }
+        return null
     }
 
     private fun updateState(videoId: String, state: VideoDownloadState) {

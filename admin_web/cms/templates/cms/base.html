@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Bakaiya Krishi Saathi Admin{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50 text-slate-900">
+    {% if user.is_authenticated %}
+    <header class="bg-[#174D36] text-white shadow">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center space-x-6">
+                <a href="{% url 'cms:dashboard' %}" class="font-bold text-lg tracking-tight">Bakaiya Krishi Saathi Admin</a>
+                <nav class="flex flex-wrap gap-3 text-sm font-medium">
+                    <a href="{% url 'cms:dashboard' %}" class="px-2.5 py-1 rounded hover:bg-emerald-800">Overview</a>
+                    <a href="{% url 'cms:crops_list' %}" class="px-2.5 py-1 rounded hover:bg-emerald-800">Crops</a>
+                    <a href="{% url 'cms:livestock_list' %}" class="px-2.5 py-1 rounded hover:bg-emerald-800">Livestock</a>
+                    <a href="{% url 'cms:media_library' %}" class="px-2.5 py-1 rounded hover:bg-emerald-800">Media Library</a>
+                    <a href="{% url 'cms:helpline_list' %}" class="px-2.5 py-1 rounded hover:bg-emerald-800">Helpline</a>
+                </nav>
+            </div>
+            <div class="flex items-center space-x-4 text-sm">
+                <span>Signed in as <strong>{{ user.username }}</strong></span>
+                <form action="{% url 'cms:logout' %}" method="post" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" class="px-3 py-1 rounded bg-white/15 hover:bg-white/25">Sign Out</button>
+                </form>
+            </div>
+        </div>
+    </header>
+    {% endif %}
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-6">
+        {% if messages %}
+        <div class="space-y-2 mb-4">
+            {% for msg in messages %}
+            <div class="p-3 rounded border {% if msg.tags == 'error' %}bg-red-50 border-red-200 text-red-800{% else %}bg-emerald-50 border-emerald-200 text-emerald-900{% endif %} text-sm">
+                {{ msg }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="border-t bg-white py-3 text-center text-xs text-slate-500">
+        Bakaiya Krishi Saathi Admin CMS • English Administration Portal • Verified Editorial Workflow
+    </footer>
+</body>
+</html>

@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.krishisaathi.app.di.AppContainer
 import com.krishisaathi.app.domain.model.BakaiyaCrop
 import com.krishisaathi.app.domain.model.CropImage
+import com.krishisaathi.app.domain.model.CropVarietyRequirement
 import com.krishisaathi.app.domain.model.EducationalVideo
 import com.krishisaathi.app.domain.repository.BakaiyaCropRepository
 import com.krishisaathi.app.media.VideoDownloadManager
@@ -20,6 +21,8 @@ import kotlinx.coroutines.flow.stateIn
 
 data class CropDetailUiState(
     val crop: BakaiyaCrop? = null,
+    val varietyRequirements: List<CropVarietyRequirement> = emptyList(),
+    val selectedVarietyId: String? = null,
     val images: List<CropImage> = emptyList(),
     val videos: List<EducationalVideo> = emptyList(),
     val selectedTopicId: Int? = null,
@@ -36,11 +39,13 @@ class CropDetailViewModel(
 ) : ViewModel() {
 
     private val _selectedTopicId = MutableStateFlow<Int?>(null)
+    private val _selectedVarietyId = MutableStateFlow<String?>(null)
     private val _fullScreenImage = MutableStateFlow<CropImage?>(null)
     private val _launchError = MutableStateFlow<String?>(null)
 
     private data class CropContentTuple(
         val crop: BakaiyaCrop?,
+        val varietyRequirements: List<CropVarietyRequirement>,
         val images: List<CropImage>,
         val videos: List<EducationalVideo>,
         val downloadStates: Map<String, VideoDownloadState>
@@ -49,16 +54,18 @@ class CropDetailViewModel(
     val uiState: StateFlow<CropDetailUiState> = combine(
         combine(
             repository.getCropById(cropId),
+            repository.getVarietyRequirementsForCrop(cropId),
             repository.getCropImages(cropId),
             repository.getCropVideos(cropId),
             downloadManager.downloadStates
-        ) { crop, images, videos, downloadStates ->
-            CropContentTuple(crop, images, videos, downloadStates)
+        ) { crop, varieties, images, videos, downloadStates ->
+            CropContentTuple(crop, varieties, images, videos, downloadStates)
         },
+        _selectedVarietyId,
         _selectedTopicId,
         _fullScreenImage,
         _launchError
-    ) { content, topicId, fullScreenImg, launchErr ->
+    ) { content, selectedVarId, topicId, fullScreenImg, launchErr ->
         val filteredVideos = if (topicId == null) {
             content.videos
         } else {
@@ -66,6 +73,8 @@ class CropDetailViewModel(
         }
         CropDetailUiState(
             crop = content.crop,
+            varietyRequirements = content.varietyRequirements,
+            selectedVarietyId = selectedVarId,
             images = content.images,
             videos = filteredVideos,
             selectedTopicId = topicId,
@@ -79,6 +88,10 @@ class CropDetailViewModel(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = CropDetailUiState(isLoading = true)
     )
+
+    fun selectVariety(varietyId: String?) {
+        _selectedVarietyId.value = varietyId
+    }
 
     fun selectTopic(topicId: Int?) {
         _selectedTopicId.value = topicId

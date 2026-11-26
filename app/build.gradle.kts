@@ -29,8 +29,8 @@ android {
                 properties.load(stream)
             }
         }
-        val supabaseUrl = properties.getProperty("SUPABASE_URL") ?: "https://aheylojvwimspfuivpii.supabase.co"
-        val supabaseAnonKey = properties.getProperty("SUPABASE_ANON_KEY") ?: "placeholder_anon_key"
+        val supabaseUrl = properties.getProperty("SUPABASE_URL") ?: ""
+        val supabaseAnonKey = properties.getProperty("SUPABASE_ANON_KEY") ?: ""
 
         buildConfigField("String", "SUPABASE_URL", "\"$supabaseUrl\"")
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"$supabaseAnonKey\"")
@@ -38,9 +38,12 @@ android {
 
     buildTypes {
         release {
-            optimization {
-                enable = false
-            }
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
     compileOptions {
@@ -50,6 +53,16 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+    packaging {
+        resources {
+            excludes += listOf(
+                "META-INF/LICENSE*",
+                "META-INF/NOTICE*",
+                "META-INF/INDEX.LIST",
+                "DebugProbesKt.bin"
+            )
+        }
     }
     buildToolsVersion = "36.0.0"
     ndkVersion = "30.0.16138531 rc3"
@@ -75,7 +88,6 @@ dependencies {
     implementation(libs.androidx.work.runtime.ktx)
     implementation(platform(libs.supabase.bom))
     implementation(libs.supabase.postgrest)
-    implementation(libs.supabase.auth)
     implementation(libs.ktor.client.android)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.coil.compose)

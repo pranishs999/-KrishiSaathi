@@ -32,16 +32,38 @@ CREATE TABLE IF NOT EXISTS public.crops (
     climate_overview TEXT,
     suitable_altitude TEXT,
 
-    -- Environmental Requirements
+    -- Environmental Requirements & Growing Conditions
+    altitude_min_m INT,
+    altitude_opt_min_m INT,
+    altitude_opt_max_m INT,
+    altitude_max_m INT,
+    altitude_growth_notes_ne TEXT,
+    suitable_zones_csv TEXT,
+    suitable_regions_ne TEXT,
     temp_min DOUBLE PRECISION,
+    temp_opt_min DOUBLE PRECISION,
+    temp_opt_max DOUBLE PRECISION,
     temp_max DOUBLE PRECISION,
     humidity_min DOUBLE PRECISION,
     humidity_max DOUBLE PRECISION,
+    rainfall_min_mm INT,
+    rainfall_max_mm INT,
+    rainfall_period_label_ne TEXT,
     soil_types TEXT,
+    soil_texture_ne TEXT,
     soil_ph_min DOUBLE PRECISION,
     soil_ph_max DOUBLE PRECISION,
+    soil_drainage_ne TEXT,
+    soil_fertility_ne TEXT,
+    soil_organic_matter_ne TEXT,
     sunlight TEXT,
     water_requirement TEXT,
+    sowing_period_ne TEXT,
+    transplanting_period_ne TEXT,
+    growing_duration_ne TEXT,
+    harvesting_period_ne TEXT,
+    special_considerations_ne TEXT,
+    last_updated_date TEXT,
 
     -- Cultivation Sections
     land_preparation TEXT,
@@ -63,6 +85,36 @@ CREATE TABLE IF NOT EXISTS public.crops (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- ----------------------------------------------------------------------------
+-- 2B. VARIETY-SPECIFIC GROWING CONDITIONS
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.crop_variety_requirements (
+    id TEXT PRIMARY KEY,
+    crop_id TEXT NOT NULL REFERENCES public.crops(id) ON DELETE CASCADE,
+    crop_name_ne TEXT NOT NULL,
+    crop_name_en TEXT NOT NULL,
+    variety_name_ne TEXT NOT NULL,
+    variety_name_en TEXT,
+    notes_ne TEXT,
+    source_reference TEXT NOT NULL,
+    altitude_min_m INT,
+    altitude_opt_min_m INT,
+    altitude_opt_max_m INT,
+    altitude_max_m INT,
+    suitable_altitude TEXT,
+    suitable_zones_csv TEXT,
+    suitable_regions_ne TEXT,
+    planting_season TEXT,
+    transplanting_period_ne TEXT,
+    growing_duration_ne TEXT,
+    last_updated_date TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_crop_variety_crop ON public.crop_variety_requirements (crop_id);
+ALTER TABLE public.crop_variety_requirements ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public can view crop variety requirements" ON public.crop_variety_requirements FOR SELECT USING (true);
+CREATE POLICY "Allow all on crop_variety_requirements" ON public.crop_variety_requirements FOR ALL USING (true);
 
 -- ----------------------------------------------------------------------------
 -- 3. CROP IMAGES

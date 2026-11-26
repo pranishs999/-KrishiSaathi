@@ -40,7 +40,7 @@ import com.krishisaathi.app.ui.theme.NaturalIvory
  * - Natural Ivory navigation canvas
  * - Deep Charcoal selected state and Muted Green Grey unselected state
  * - Divider Sage structural hairlines
- * - 4 bottom navigation tabs: गृहपृष्ठ, बालीहरू, किसान हेल्पलाइन, मेरो विवरण
+ * - 4 bottom navigation tabs: गृहपृष्ठ, बाली, पशुपालन, किसान हेल्पलाइन
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,8 +54,8 @@ fun MainScaffold(
 
     val showChromeBars = currentRoute == BottomNavItem.Home.route ||
             currentRoute?.startsWith("crops") == true ||
-            currentRoute == BottomNavItem.Helpline.route ||
-            currentRoute == BottomNavItem.Profile.route
+            currentRoute?.startsWith("livestock") == true ||
+            currentRoute == BottomNavItem.Helpline.route
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -115,6 +115,7 @@ fun MainScaffold(
                         bottomNavItems.forEach { item ->
                             val selected = when (item) {
                                 BottomNavItem.Crops -> currentRoute?.startsWith("crops") == true
+                                BottomNavItem.Livestock -> currentRoute?.startsWith("livestock") == true || currentRoute?.startsWith("animal_detail") == true
                                 else -> currentRoute == item.route
                             }
                             NavigationBarItem(
