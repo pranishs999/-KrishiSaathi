@@ -28,6 +28,8 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import com.krishisaathi.app.data.local.BakaiyaLivestockSeedData
+import com.krishisaathi.app.data.local.BakaiyaSeedData
+import com.krishisaathi.app.data.remote.RemoteContentSyncClient
 import com.krishisaathi.app.domain.model.Animal
 import com.krishisaathi.app.domain.model.AnimalBreed
 import com.krishisaathi.app.domain.model.AnimalCategory
@@ -41,7 +43,8 @@ import java.io.File
 class BakaiyaCropRepositoryImpl(
     private val dao: BakaiyaCropDao,
     private val dispatchers: DispatcherProvider,
-    private val database: KrishiSaathiDatabase? = null
+    private val database: KrishiSaathiDatabase? = null,
+    private val remoteClient: RemoteContentSyncClient? = null
 ) : BakaiyaCropRepository {
 
     override fun getCategories(): Flow<List<CropCategory>> {
@@ -146,19 +149,32 @@ class BakaiyaCropRepositoryImpl(
                     )
                 }
 
+                val registrationTime = System.currentTimeMillis()
                 val insertedRowId = dao.saveFarmerRegistration(
                     FarmerRegistrationEntity(
                         fullName = trimmedName,
                         municipality = trimmedMunicipality,
                         wardNumber = ward,
                         phoneNumber = normalizedPhone,
-                        registeredAt = System.currentTimeMillis()
+                        registeredAt = registrationTime
                     )
                 )
                 val persisted = dao.findFarmerRegistrationSync()
                 if (insertedRowId <= 0L || persisted == null) {
                     return@withContext Result.failure(
                         IllegalStateException("किसान विवरण डेटाबेसमा सुरक्षित हुन सकेन।")
+                    )
+                }
+                // Best-effort remote sync to Supabase farmer_registration table (never blocks offline UX)
+                runCatching {
+                    remoteClient?.uploadFarmerRegistration(
+                        FarmerRegistration(
+                            fullName = trimmedName,
+                            municipality = trimmedMunicipality,
+                            wardNumber = ward,
+                            phoneNumber = normalizedPhone,
+                            registeredAt = registrationTime
+                        )
                     )
                 }
                 Result.success(Unit)
@@ -251,7 +267,8 @@ class BakaiyaCropRepositoryImpl(
         )
     }
 
-    private fun CategoryEntity.toDomain() = CropCategory(id, nameNe, nameEn, iconName)
+    private fun CategoryEntity.toDomain() =
+        CropCategory(id, nameNe, nameEn, iconName, BakaiyaSeedData.categoryThumbnailUrl(id))
 
     private fun GrowingConditionsEmbedded.toDomain(sourceReference: String) = CropGrowingCondition(
         altitudeMinMeters = altitudeMinMeters,

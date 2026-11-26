@@ -45,6 +45,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,6 +53,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.krishisaathi.app.data.local.prefs.DataStoreManager
 import com.krishisaathi.app.domain.model.BakaiyaMunicipality
 import com.krishisaathi.app.ui.theme.DeepCharcoal
 import com.krishisaathi.app.ui.theme.DisabledGreen
@@ -71,13 +73,18 @@ import com.krishisaathi.app.ui.theme.SoftSage
 fun RegistrationScreen(
     viewModel: RegistrationViewModel,
     onRegistrationComplete: () -> Unit = {},
+    dataStoreManager: DataStoreManager? = null,
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsState()
     var wardMenuExpanded by remember { mutableStateOf(false) }
+    var toleVillage by rememberSaveable { mutableStateOf("") }
 
     LaunchedEffect(state.isCompleted) {
         if (state.isCompleted) {
+            if (toleVillage.isNotBlank()) {
+                dataStoreManager?.setToleVillage(toleVillage)
+            }
             onRegistrationComplete()
         }
     }
@@ -310,6 +317,19 @@ fun RegistrationScreen(
                         )
                     }
                 }
+
+                // 5. Optional Tole / Village for Farmer Profile
+                OutlinedTextField(
+                    value = toleVillage,
+                    onValueChange = { toleVillage = it },
+                    label = { Text("टोल / गाउँ (ऐच्छिक)", color = DeepCharcoal) },
+                    placeholder = { Text("उदा: हात्तीसुँडे", color = PlaceholderText) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = fieldColors,
+                    modifier = Modifier.fillMaxWidth()
+                )
 
                 Spacer(modifier = Modifier.height(4.dp))
 

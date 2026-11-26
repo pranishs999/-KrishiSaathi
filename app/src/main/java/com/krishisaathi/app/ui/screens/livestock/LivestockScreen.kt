@@ -15,16 +15,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BrokenImage
 import androidx.compose.material.icons.outlined.Pets
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -45,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.krishisaathi.app.domain.model.Animal
+import com.krishisaathi.app.ui.screens.home.CropThumbnailImage
 import com.krishisaathi.app.ui.theme.DeepCharcoal
 import com.krishisaathi.app.ui.theme.ForestGreen
 import com.krishisaathi.app.ui.theme.LeafGreen
@@ -93,37 +92,73 @@ fun LivestockScreen(
 
         if (state.categories.isNotEmpty()) {
             Spacer(modifier = Modifier.height(12.dp))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                FilterChip(
-                    selected = activeCategoryId == null,
-                    onClick = { activeCategoryId = null },
-                    label = { Text("सबै", style = MaterialTheme.typography.labelLarge) },
-                    shape = RoundedCornerShape(50),
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = ForestGreen,
-                        selectedLabelColor = NaturalIvory,
-                        containerColor = SoftSage,
-                        labelColor = DeepCharcoal
-                    )
-                )
-                state.categories.forEach { category ->
-                    FilterChip(
-                        selected = activeCategoryId == category.id,
+                item {
+                    val isSelected = activeCategoryId == null
+                    Card(
+                        onClick = { activeCategoryId = null },
+                        shape = RoundedCornerShape(18.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (isSelected) ForestGreen else SoftSage
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            CropThumbnailImage(
+                                imageUrl = state.categories.firstOrNull()?.thumbnailUrl,
+                                contentDescription = "सबै पशुपालन",
+                                fallbackIcon = Icons.Outlined.Pets,
+                                modifier = Modifier.size(48.dp)
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "सबै वर्ग",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isSelected) NaturalIvory else DeepCharcoal
+                            )
+                        }
+                    }
+                }
+                items(state.categories, key = { it.id }) { category ->
+                    val isSelected = activeCategoryId == category.id
+                    Card(
                         onClick = { activeCategoryId = category.id },
-                        label = { Text(category.nameNe, style = MaterialTheme.typography.labelLarge) },
-                        shape = RoundedCornerShape(50),
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = ForestGreen,
-                            selectedLabelColor = NaturalIvory,
-                            containerColor = SoftSage,
-                            labelColor = DeepCharcoal
-                        )
-                    )
+                        shape = RoundedCornerShape(18.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (isSelected) ForestGreen else SoftSage
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .width(106.dp)
+                                .padding(horizontal = 8.dp, vertical = 10.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            CropThumbnailImage(
+                                imageUrl = category.thumbnailUrl,
+                                contentDescription = category.nameNe,
+                                fallbackIcon = Icons.Outlined.Pets,
+                                modifier = Modifier.size(48.dp)
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = category.nameNe,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (isSelected) NaturalIvory else DeepCharcoal,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
                 }
             }
         }

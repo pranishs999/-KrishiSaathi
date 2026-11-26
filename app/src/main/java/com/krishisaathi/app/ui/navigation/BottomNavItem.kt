@@ -1,9 +1,9 @@
-
 package com.krishisaathi.app.ui.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Agriculture
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Pets
 import androidx.compose.material.icons.outlined.SupportAgent
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -33,15 +33,21 @@ sealed class BottomNavItem(
 
     data object Helpline : BottomNavItem(
         route = "helpline",
-        title = "किसान हेल्पलाइन",
+        title = "हेल्पलाइन",
         icon = Icons.Outlined.SupportAgent
+    )
+
+    data object Profile : BottomNavItem(
+        route = "profile",
+        title = "प्रोफाइल",
+        icon = Icons.Outlined.Person
     )
 }
 
-// Exact 4-tab navigation per Section 3: गृहपृष्ठ, बाली, पशुपालन, किसान हेल्पलाइन
 val bottomNavItems: List<BottomNavItem> = listOf(
     BottomNavItem.Home,
     BottomNavItem.Crops,
     BottomNavItem.Livestock,
-    BottomNavItem.Helpline
+    BottomNavItem.Helpline,
+    BottomNavItem.Profile
 )

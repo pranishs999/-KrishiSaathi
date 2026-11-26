@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,8 +28,6 @@ import androidx.compose.material.icons.outlined.Verified
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -110,41 +109,74 @@ fun CropsScreen(
             singleLine = true
         )
 
-        // Category Filter Chips
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        // Category Visual Cards with Crop Images
+        LazyRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            FilterChip(
-                selected = state.selectedCategoryId == null,
-                onClick = { viewModel.onCategorySelected(null) },
-                label = { Text("सबै") },
-                shape = RoundedCornerShape(50),
-                border = null,
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = ForestGreen,
-                    selectedLabelColor = NaturalIvory,
-                    containerColor = SoftSage,
-                    labelColor = DeepCharcoal
-                )
-            )
+            item {
+                val isSelected = state.selectedCategoryId == null
+                Card(
+                    onClick = { viewModel.onCategorySelected(null) },
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isSelected) ForestGreen else SoftSage
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        CropThumbnailImage(
+                            imageUrl = state.categories.firstOrNull()?.thumbnailUrl,
+                            contentDescription = "सबै बाली",
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "सबै वर्ग",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isSelected) NaturalIvory else DeepCharcoal
+                        )
+                    }
+                }
+            }
 
-            state.categories.forEach { category ->
-                FilterChip(
-                    selected = state.selectedCategoryId == category.id,
+            items(state.categories, key = { it.id }) { category ->
+                val isSelected = state.selectedCategoryId == category.id
+                Card(
                     onClick = { viewModel.onCategorySelected(category.id) },
-                    label = { Text(category.nameNe) },
-                    shape = RoundedCornerShape(50),
-                    border = null,
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = ForestGreen,
-                        selectedLabelColor = NaturalIvory,
-                        containerColor = SoftSage,
-                        labelColor = DeepCharcoal
-                    )
-                )
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isSelected) ForestGreen else SoftSage
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .width(104.dp)
+                            .padding(horizontal = 8.dp, vertical = 10.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CropThumbnailImage(
+                            imageUrl = category.thumbnailUrl,
+                            contentDescription = category.nameNe,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = category.nameNe,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = if (isSelected) NaturalIvory else DeepCharcoal,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
             }
         }
 

@@ -113,7 +113,8 @@ data class CropCategory(
     val id: String,
     val nameNe: String,
     val nameEn: String,
-    val iconName: String?
+    val iconName: String?,
+    val thumbnailUrl: String? = null
 )
 
 data class BakaiyaCrop(

@@ -34,6 +34,7 @@ object BakaiyaLivestockSeedData {
             nameEn = "Cattle & Buffalo",
             descriptionNe = "दूध, मलखाद र कृषि कार्यका लागि प्रमुख ठूला पशुधन",
             iconName = "pets",
+            thumbnailUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Zebu.JPG/640px-Zebu.JPG",
             sortOrder = 1
         ),
         AnimalCategory(
@@ -42,6 +43,7 @@ object BakaiyaLivestockSeedData {
             nameEn = "Goat & Sheep",
             descriptionNe = "बकैयाका पाखो तथा मध्य पहाडी भेगमा लोकप्रिय मासु तथा आयआर्जनको स्रोत",
             iconName = "pets",
+            thumbnailUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Goat_in_Nepal_01.JPG/640px-Goat_in_Nepal_01.JPG",
             sortOrder = 2
         ),
         AnimalCategory(
@@ -50,6 +52,7 @@ object BakaiyaLivestockSeedData {
             nameEn = "Poultry",
             descriptionNe = "अण्डा तथा मासु उत्पादनका लागि घरायसी तथा व्यावसायिक पंक्षीपालन",
             iconName = "egg",
+            thumbnailUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Giriraja_chicken_%282%29.JPG/640px-Giriraja_chicken_%282%29.JPG",
             sortOrder = 3
         ),
         AnimalCategory(
@@ -58,6 +61,7 @@ object BakaiyaLivestockSeedData {
             nameEn = "Pig & Fishery",
             descriptionNe = "तल्लो उपत्यका र खोला किनार क्षेत्रका लागि लाभदायक पशुपालन तथा मत्स्यपालन",
             iconName = "water",
+            thumbnailUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Common_carp_in_a_pond.jpg/640px-Common_carp_in_a_pond.jpg",
             sortOrder = 4
         )
     )
@@ -77,7 +81,7 @@ object BakaiyaLivestockSeedData {
             altitudeRangeNe = "६० देखि २००० मिटरसम्म उपयुक्त",
             recommendedBreedsSummaryNe = "उन्नत क्रस (जर्सी क्रस, होल्स्टाइन फ्रिजियन क्रस) तथा स्थानीय (लुलु, अछामे, पहाडी)",
             sourceReference = VET_SOURCE,
-            thumbnailUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Cow_female_black_white.jpg/640px-Cow_female_black_white.jpg",
+            thumbnailUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Zebu.JPG/640px-Zebu.JPG",
             reviewStatus = "published",
             isVerifiedContent = true,
             isPublished = true,
@@ -97,7 +101,7 @@ object BakaiyaLivestockSeedData {
             altitudeRangeNe = "६० देखि १८०० मिटरसम्म उपयुक्त",
             recommendedBreedsSummaryNe = "मुर्रा क्रस, लिमे, पारकोटे र स्थानीय पहाडी भैंसी",
             sourceReference = VET_SOURCE,
-            thumbnailUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Water_buffalo_at_India.jpg/640px-Water_buffalo_at_India.jpg",
+            thumbnailUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Murrah_buffalo.JPG/640px-Murrah_buffalo.JPG",
             reviewStatus = "published",
             isVerifiedContent = true,
             isPublished = true,
@@ -117,7 +121,7 @@ object BakaiyaLivestockSeedData {
             altitudeRangeNe = "१०० देखि २५०० मिटरसम्म उपयुक्त",
             recommendedBreedsSummaryNe = "खरी (स्थानीय प्रमुख), जमुनापारी क्रस, बोयर क्रस (व्यावसायिक मासु)",
             sourceReference = VET_SOURCE,
-            thumbnailUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Hausziege_04.jpg/640px-Hausziege_04.jpg",
+            thumbnailUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Goat_in_Nepal_01.JPG/640px-Goat_in_Nepal_01.JPG",
             reviewStatus = "published",
             isVerifiedContent = true,
             isPublished = true,
@@ -137,7 +141,7 @@ object BakaiyaLivestockSeedData {
             altitudeRangeNe = "६० देखि २२०० मिटरसम्म",
             recommendedBreedsSummaryNe = "स्थानीय (साकिनी/घाँटी खुइले), गिरिराज, न्यूह्याम्पसायर, कोब-५०० (ब्रोइलर)",
             sourceReference = VET_SOURCE,
-            thumbnailUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Female_pair.jpg/640px-Female_pair.jpg",
+            thumbnailUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Giriraja_chicken_%282%29.JPG/640px-Giriraja_chicken_%282%29.JPG",
             reviewStatus = "published",
             isVerifiedContent = true,
             isPublished = true,
@@ -157,7 +161,7 @@ object BakaiyaLivestockSeedData {
             altitudeRangeNe = "६० देखि १८०० मिटरसम्म",
             recommendedBreedsSummaryNe = "हुर्रा/पाँग्रे (स्थानीय), योर्कशायर, ल्यान्ड्रेस, ड्युरोक र धरान कालो सुँगुर",
             sourceReference = VET_SOURCE,
-            thumbnailUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Sow_and_five_piglets.jpg/640px-Sow_and_five_piglets.jpg",
+            thumbnailUrl = "https://upload.wikimedia.org/wikipedia/commons/9/97/Pig_In_Nepal.jpg",
             reviewStatus = "published",
             isVerifiedContent = true,
             isPublished = true,
@@ -177,7 +181,7 @@ object BakaiyaLivestockSeedData {
             altitudeRangeNe = "६० देखि १२०० मिटरसम्म (कार्प माछा)",
             recommendedBreedsSummaryNe = "रहु (Rohu), नैनी (Mrigal), भाकुर (Catla), कमन कार्प, सिल्भर कार्प, ग्रास कार्प",
             sourceReference = VET_SOURCE,
-            thumbnailUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Catla_catla.jpg/640px-Catla_catla.jpg",
+            thumbnailUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Common_carp_in_a_pond.jpg/640px-Common_carp_in_a_pond.jpg",
             reviewStatus = "published",
             isVerifiedContent = true,
             isPublished = true,
@@ -193,6 +197,7 @@ object BakaiyaLivestockSeedData {
             speciesCode = "sheep",
             summaryNe = "समीक्षाको क्रममा रहेको सामग्री।",
             sourceReference = VET_SOURCE,
+            thumbnailUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Sheep_Nepal.jpg/640px-Sheep_Nepal.jpg",
             reviewStatus = "in_review",
             isVerifiedContent = false,
             isPublished = false,
@@ -207,6 +212,7 @@ object BakaiyaLivestockSeedData {
             speciesCode = "duck",
             summaryNe = "थप स्रोत प्रमाणीकरण आवश्यक सामग्री।",
             sourceReference = VET_SOURCE,
+            thumbnailUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Domestic_duck.jpg/640px-Domestic_duck.jpg",
             reviewStatus = "needs_source",
             isVerifiedContent = false,
             isPublished = false,
@@ -717,55 +723,55 @@ object BakaiyaLivestockSeedData {
         AnimalImage(
             id = "aimg-cattle-1",
             animalId = "animal-cattle",
-            imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Cow_female_black_white.jpg/640px-Cow_female_black_white.jpg",
+            imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Zebu.JPG/640px-Zebu.JPG",
             captionNe = "गाईपालन सामान्य पहिचान तस्बिर (स्रोत: Wikimedia Commons)",
             stageCategory = "breed",
-            licenseType = "CC BY-SA",
+            licenseType = "CC BY-SA 3.0",
             sortOrder = 1
         ),
         AnimalImage(
             id = "aimg-buffalo-1",
             animalId = "animal-buffalo",
-            imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Water_buffalo_at_India.jpg/640px-Water_buffalo_at_India.jpg",
-            captionNe = "भैंसीपालन सामान्य पहिचान तस्बिर (स्रोत: Wikimedia Commons)",
+            imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Murrah_buffalo.JPG/640px-Murrah_buffalo.JPG",
+            captionNe = "भैंसीपालन सामान्य पहिचान तस्बिर (स्रोत: Kleomarlo / Wikimedia Commons)",
             stageCategory = "breed",
-            licenseType = "CC BY-SA",
+            licenseType = "CC BY-SA 3.0",
             sortOrder = 1
         ),
         AnimalImage(
             id = "aimg-goat-1",
             animalId = "animal-goat",
-            imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Hausziege_04.jpg/640px-Hausziege_04.jpg",
-            captionNe = "बाख्रापालन सामान्य पहिचान तस्बिर (स्रोत: Wikimedia Commons)",
+            imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Goat_in_Nepal_01.JPG/640px-Goat_in_Nepal_01.JPG",
+            captionNe = "नेपाली बाख्रा पहिचान तस्बिर (स्रोत: Punya / Wikimedia Commons)",
             stageCategory = "breed",
-            licenseType = "CC BY-SA",
+            licenseType = "CC BY-SA 4.0",
             sortOrder = 1
         ),
         AnimalImage(
             id = "aimg-chicken-1",
             animalId = "animal-chicken",
-            imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Female_pair.jpg/640px-Female_pair.jpg",
-            captionNe = "कुखुरापालन सामान्य पहिचान तस्बिर (स्रोत: Wikimedia Commons)",
+            imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Giriraja_chicken_%282%29.JPG/640px-Giriraja_chicken_%282%29.JPG",
+            captionNe = "गिरिराज कुखुरा पहिचान तस्बिर (स्रोत: Irvin Calicut / Wikimedia Commons)",
             stageCategory = "breed",
-            licenseType = "CC BY-SA",
+            licenseType = "CC BY-SA 3.0",
             sortOrder = 1
         ),
         AnimalImage(
             id = "aimg-pig-1",
             animalId = "animal-pig",
-            imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Sow_and_five_piglets.jpg/640px-Sow_and_five_piglets.jpg",
-            captionNe = "बंगुर तथा पाठापाठी पहिचान तस्बिर (स्रोत: Wikimedia Commons)",
+            imageUrl = "https://upload.wikimedia.org/wikipedia/commons/9/97/Pig_In_Nepal.jpg",
+            captionNe = "नेपालमा बंगुरपालन पहिचान तस्बिर (स्रोत: Ravijung / Wikimedia Commons)",
             stageCategory = "breed",
-            licenseType = "CC BY-SA",
+            licenseType = "CC BY-SA 4.0",
             sortOrder = 1
         ),
         AnimalImage(
             id = "aimg-fish-1",
             animalId = "animal-fish",
-            imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Catla_catla.jpg/640px-Catla_catla.jpg",
-            captionNe = "कार्प प्रजाति माछा पहिचान तस्बिर (स्रोत: Wikimedia Commons)",
-            stageCategory = "breed",
-            licenseType = "CC BY-SA",
+            imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Common_carp_in_a_pond.jpg/640px-Common_carp_in_a_pond.jpg",
+            captionNe = "पोखरीमा कार्प माछापालन तस्बिर (स्रोत: Keimzelle / CC0)",
+            stageCategory = "housing",
+            licenseType = "CC0 1.0",
             sortOrder = 1
         )
     )

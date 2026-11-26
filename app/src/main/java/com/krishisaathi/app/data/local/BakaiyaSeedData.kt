@@ -22,6 +22,16 @@ object BakaiyaSeedData {
         CategoryEntity(id = "cat-cash", nameNe = "मसला तथा नगदे बाली", nameEn = "Spices & Cash Crops", iconName = "storefront")
     )
 
+    fun categoryThumbnailUrl(categoryId: String): String = when (categoryId) {
+        "cat-cereal" -> "https://upload.wikimedia.org/wikipedia/commons/6/6e/Rice_Fields_in_Jamuna%2C_Nepal.jpg"
+        "cat-vegetable" -> "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Chou-fleur_02.jpg/640px-Chou-fleur_02.jpg"
+        "cat-fruit" -> "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Banana_tree_%28musa%29.jpg/640px-Banana_tree_%28musa%29.jpg"
+        "cat-pulse" -> "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Lens_culinaris_sl13.jpg/640px-Lens_culinaris_sl13.jpg"
+        "cat-oilseed" -> "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Among_Mustard_Dreams.jpg/640px-Among_Mustard_Dreams.jpg"
+        "cat-cash" -> "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Ginger_plant.jpg/640px-Ginger_plant.jpg"
+        else -> "https://upload.wikimedia.org/wikipedia/commons/6/6e/Rice_Fields_in_Jamuna%2C_Nepal.jpg"
+    }
+
     val crops = listOf(
         BakaiyaCropEntity(
             id = "crop-paddy",
@@ -78,7 +88,7 @@ object BakaiyaSeedData {
             storage = "दानालाई राम्ररी सुकाई चिस्यान १२ प्रतिशतभन्दा कम बनाएर सफा भकारी, सुपरग्रेन ब्याग वा मेटालिक ड्रममा हावा नछिर्ने गरी राख्ने।",
             sourceReference = "नेपाल कृषि अनुसन्धान परिषद् (NARC) / कृषि डायरी / FAO EcoCrop",
             isVerifiedContent = true,
-            thumbnailUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Rice_plants_%28IRRI%29.jpg/640px-Rice_plants_%28IRRI%29.jpg"
+            thumbnailUrl = "https://upload.wikimedia.org/wikipedia/commons/6/6e/Rice_Fields_in_Jamuna%2C_Nepal.jpg"
         ),
         BakaiyaCropEntity(
             id = "crop-maize",
@@ -135,7 +145,7 @@ object BakaiyaSeedData {
             storage = "घोगा वा छोडाएको दानालाई घाममा राम्ररी सुकाई चिस्यान १२ प्रतिशतभन्दा कम भएपछि सुक्खा स्थान वा हर्मेटिक ब्यागमा भण्डारण गर्ने।",
             sourceReference = "राष्ट्रिय मकै बाली अनुसन्धान कार्यक्रम, रामपुर (NARC) / कृषि डायरी",
             isVerifiedContent = true,
-            thumbnailUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Zea_mays_crop.jpg/640px-Zea_mays_crop.jpg"
+            thumbnailUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Starr-100621-7681-Zea_mays-crop_view_abandoned_pineapple_fields_above-Honokowai-Maui_%2824415271633%29.jpg/640px-Starr-100621-7681-Zea_mays-crop_view_abandoned_pineapple_fields_above-Honokowai-Maui_%2824415271633%29.jpg"
         ),
         BakaiyaCropEntity(
             id = "crop-cauliflower",
@@ -306,7 +316,7 @@ object BakaiyaSeedData {
             storage = "सुक्खा र हावा खेल्ने छायादार ठाउँ वा सुरक्षित खाडल प्रविधि (Pit storage) मा बीउ अदुवा सुरक्षित राख्ने।",
             sourceReference = "राष्ट्रिय अदुवा बाली अनुसन्धान कार्यक्रम, कपुरकोट (NARC) / FAO",
             isVerifiedContent = true,
-            thumbnailUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Ginger_plant.jpg/640px-Ginger_plant.jpg"
+            thumbnailUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Ginger_plant.jpg/640px-Ginger_plant.jpg"
         ),
         BakaiyaCropEntity(
             id = "crop-mustard",
@@ -363,7 +373,7 @@ object BakaiyaSeedData {
             storage = "दानालाई घाममा राम्ररी सुकाई चिस्यान ८ प्रतिशतभन्दा कम पारेर सुक्खा भाँडा वा बोरामा भण्डारण गर्ने।",
             sourceReference = "तेलहन बाली अनुसन्धान कार्यक्रम, नवलपुर (NARC) / कृषि डायरी",
             isVerifiedContent = true,
-            thumbnailUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Mustard_field_in_Nepal.jpg/640px-Mustard_field_in_Nepal.jpg"
+            thumbnailUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Among_Mustard_Dreams.jpg/640px-Among_Mustard_Dreams.jpg"
         ),
         BakaiyaCropEntity(
             id = "crop-lentil",
@@ -420,7 +430,7 @@ object BakaiyaSeedData {
             storage = "दानालाई सुकाएर चिस्यान १० प्रतिशत मुनि झारी सुरक्षित भाँडा वा सुपरग्रेन ब्यागमा घुन नलाग्ने गरी राख्ने।",
             sourceReference = "कोसेबाली अनुसन्धान कार्यक्रम, खजुरा (NARC) / FAO EcoCrop",
             isVerifiedContent = true,
-            thumbnailUrl = null
+            thumbnailUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Lens_culinaris_sl13.jpg/640px-Lens_culinaris_sl13.jpg"
         ),
         BakaiyaCropEntity(
             id = "crop-banana",
@@ -477,7 +487,7 @@ object BakaiyaSeedData {
             storage = "सावधानीपूर्वक छायाँमा सुरक्षित राखी स्वाभाविक रूपमा पकाएर बजार व्यवस्थापन गर्ने।",
             sourceReference = "नेपाल कृषि अनुसन्धान परिषद् (NARC) / फलफूल विकास निर्देशनालय / FAO",
             isVerifiedContent = true,
-            thumbnailUrl = null
+            thumbnailUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Banana_tree_%28musa%29.jpg/640px-Banana_tree_%28musa%29.jpg"
         )
     )
 
@@ -900,16 +910,16 @@ object BakaiyaSeedData {
         CropImageEntity(
             id = "img-paddy-1",
             cropId = "crop-paddy",
-            imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Rice_plants_%28IRRI%29.jpg/640px-Rice_plants_%28IRRI%29.jpg",
-            captionNe = "धान बालीको सामान्य पहिचान तस्बिर (स्रोत: IRRI / Wikimedia Commons)",
+            imageUrl = "https://upload.wikimedia.org/wikipedia/commons/6/6e/Rice_Fields_in_Jamuna%2C_Nepal.jpg",
+            captionNe = "नेपालका खेतहरूमा हुर्कँदै गरेको धान बाली (स्रोत: Wikimedia Commons)",
             stageCategory = "पहिचान तथा वृद्धि",
             isSampleImage = false
         ),
         CropImageEntity(
             id = "img-maize-1",
             cropId = "crop-maize",
-            imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Zea_mays_crop.jpg/640px-Zea_mays_crop.jpg",
-            captionNe = "मकै बालीको सामान्य पहिचान तस्बिर (स्रोत: Wikimedia Commons)",
+            imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Starr-100621-7681-Zea_mays-crop_view_abandoned_pineapple_fields_above-Honokowai-Maui_%2824415271633%29.jpg/640px-Starr-100621-7681-Zea_mays-crop_view_abandoned_pineapple_fields_above-Honokowai-Maui_%2824415271633%29.jpg",
+            captionNe = "मकै बाली हुर्कँदै गरेको खेत दृश्य (स्रोत: Wikimedia Commons)",
             stageCategory = "पहिचान तथा वृद्धि",
             isSampleImage = false
         ),
@@ -932,7 +942,7 @@ object BakaiyaSeedData {
         CropImageEntity(
             id = "img-ginger-1",
             cropId = "crop-ginger",
-            imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Ginger_plant.jpg/640px-Ginger_plant.jpg",
+            imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Ginger_plant.jpg/640px-Ginger_plant.jpg",
             captionNe = "अदुवाको बोट पहिचान तस्बिर (स्रोत: Wikimedia Commons)",
             stageCategory = "पहिचान तथा वृद्धि",
             isSampleImage = false
@@ -940,9 +950,25 @@ object BakaiyaSeedData {
         CropImageEntity(
             id = "img-mustard-1",
             cropId = "crop-mustard",
-            imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Mustard_field_in_Nepal.jpg/640px-Mustard_field_in_Nepal.jpg",
+            imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Among_Mustard_Dreams.jpg/640px-Among_Mustard_Dreams.jpg",
             captionNe = "नेपालको खेतमा फुलेको तोरी बाली (स्रोत: Wikimedia Commons)",
             stageCategory = "फूल फुल्ने चरण",
+            isSampleImage = false
+        ),
+        CropImageEntity(
+            id = "img-lentil-1",
+            cropId = "crop-lentil",
+            imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Lens_culinaris_sl13.jpg/640px-Lens_culinaris_sl13.jpg",
+            captionNe = "मसुरो बालीको बोट र कोसा (स्रोत: Wikimedia Commons)",
+            stageCategory = "फल तथा कोसा चरण",
+            isSampleImage = false
+        ),
+        CropImageEntity(
+            id = "img-banana-1",
+            cropId = "crop-banana",
+            imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Banana_tree_%28musa%29.jpg/640px-Banana_tree_%28musa%29.jpg",
+            captionNe = "स्वस्थ केराको बोट र घरी (स्रोत: Wikimedia Commons)",
+            stageCategory = "फल तथा उत्पादन चरण",
             isSampleImage = false
         )
     )

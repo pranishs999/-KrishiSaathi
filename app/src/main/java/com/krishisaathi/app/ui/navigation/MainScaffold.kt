@@ -55,7 +55,8 @@ fun MainScaffold(
     val showChromeBars = currentRoute == BottomNavItem.Home.route ||
             currentRoute?.startsWith("crops") == true ||
             currentRoute?.startsWith("livestock") == true ||
-            currentRoute == BottomNavItem.Helpline.route
+            currentRoute == BottomNavItem.Helpline.route ||
+            currentRoute == BottomNavItem.Profile.route
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -116,6 +117,7 @@ fun MainScaffold(
                             val selected = when (item) {
                                 BottomNavItem.Crops -> currentRoute?.startsWith("crops") == true
                                 BottomNavItem.Livestock -> currentRoute?.startsWith("livestock") == true || currentRoute?.startsWith("animal_detail") == true
+                                BottomNavItem.Profile -> currentRoute == BottomNavItem.Profile.route
                                 else -> currentRoute == item.route
                             }
                             NavigationBarItem(

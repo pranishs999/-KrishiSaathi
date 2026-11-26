@@ -11,6 +11,7 @@ data class AnimalCategory(
     val nameEn: String,
     val descriptionNe: String? = null,
     val iconName: String? = null,
+    val thumbnailUrl: String? = null,
     val sortOrder: Int = 0
 )
 

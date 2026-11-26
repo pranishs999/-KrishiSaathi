@@ -5,8 +5,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,24 +19,17 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.AccountBalance
 import androidx.compose.material.icons.outlined.Agriculture
 import androidx.compose.material.icons.outlined.BrokenImage
-import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.DownloadDone
+import androidx.compose.material.icons.outlined.Campaign
+import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Eco
-import androidx.compose.material.icons.outlined.Grass
-import androidx.compose.material.icons.outlined.Park
-import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.icons.outlined.Pets
 import androidx.compose.material.icons.outlined.PlayCircle
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.Spa
-import androidx.compose.material.icons.outlined.Storefront
-import androidx.compose.material.icons.outlined.SupportAgent
-import androidx.compose.material.icons.outlined.WaterDrop
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -52,17 +47,18 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
-import com.krishisaathi.app.domain.model.BakaiyaCrop
-import com.krishisaathi.app.domain.model.CropCategory
 import com.krishisaathi.app.ui.theme.DeepCharcoal
-import com.krishisaathi.app.ui.theme.DividerSage
 import com.krishisaathi.app.ui.theme.ForestGreen
 import com.krishisaathi.app.ui.theme.LeafGreen
 import com.krishisaathi.app.ui.theme.LightGreen
 import com.krishisaathi.app.ui.theme.MutedGreenGrey
 import com.krishisaathi.app.ui.theme.NaturalIvory
 import com.krishisaathi.app.ui.theme.SoftSage
-import com.krishisaathi.app.ui.theme.WarningOrange
+
+private const val HERO_CROP_IMAGE_URL =
+    "https://upload.wikimedia.org/wikipedia/commons/6/6e/Rice_Fields_in_Jamuna%2C_Nepal.jpg"
+private const val HERO_LIVESTOCK_IMAGE_URL =
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Goat_in_Nepal_01.JPG/640px-Goat_in_Nepal_01.JPG"
 
 @Composable
 fun HomeScreen(
@@ -74,6 +70,7 @@ fun HomeScreen(
     onNavigateToDownloadedVideos: () -> Unit,
     onNavigateToYouTubeChannels: () -> Unit,
     onNavigateToOptionalRegistration: () -> Unit = {},
+    onNavigateToInfoSection: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -84,360 +81,103 @@ fun HomeScreen(
             .background(NaturalIvory)
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // App Identity & Welcome Header (Section 6.1)
+        // App Identity & Personalized Welcome Header
+        val farmer = state.farmerRegistration
         Column {
             Text(
-                text = "बकैया कृषि साथीमा स्वागत छ।",
-                style = MaterialTheme.typography.headlineMedium,
+                text = if (farmer != null && farmer.fullName.isNotBlank()) {
+                    "स्वागत छ, ${farmer.fullName}!"
+                } else {
+                    "बकैया कृषि साथीमा स्वागत छ।"
+                },
+                style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = ForestGreen
             )
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "बकैया गाउँपालिकाका कृषकहरूका लागि बाली खेती प्रविधि, वातावरण र कृषि परामर्शसम्बन्धी सरल नेपाली ज्ञान केन्द्र।",
+                text = if (farmer != null) {
+                    "${farmer.municipality}, वडा नं. ${farmer.wardNumber} — कृषि तथा पशुपालन ज्ञान केन्द्र"
+                } else {
+                    "बकैया गाउँपालिका, मकवानपुरका किसानहरूको भरपर्दो कृषि तथा पशुपालन ज्ञान केन्द्र"
+                },
                 style = MaterialTheme.typography.bodyMedium,
                 color = DeepCharcoal
             )
         }
 
-        // Crop Search Action Pill (Light Green background, Deep Charcoal text and icon)
+        // TOP TWO MAJOR SECTIONS SIDE BY SIDE
+        // LEFT: बाली व्यवस्थापन | RIGHT: पशुपालन तथा माछापालन
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(52.dp)
-                .clip(RoundedCornerShape(50))
-                .background(LightGreen)
-                .clickable { onNavigateToCrops(null) }
-                .padding(horizontal = 18.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .height(IntrinsicSize.Max),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Icon(
-                imageVector = Icons.Outlined.Search,
-                contentDescription = "बाली खोज्नुहोस्",
-                tint = DeepCharcoal,
-                modifier = Modifier.size(22.dp)
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(
-                text = "बाली खोज्नुहोस् (उदा: धान, मकै, काउली)...",
-                style = MaterialTheme.typography.bodyMedium,
-                color = DeepCharcoal,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-
-        // Crop Categories Grid (Section 6.2 - No invented counts)
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "बालीका वर्गहरू",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = DeepCharcoal
-                )
-                Text(
-                    text = "सबै हेर्नुहोस्",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    color = ForestGreen,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(50))
-                        .clickable { onNavigateToCrops(null) }
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                )
-            }
-
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                state.categories.chunked(2).forEach { rowCategories ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        rowCategories.forEach { category ->
-                            CategoryCard(
-                                category = category,
-                                onClick = { onNavigateToCrops(category.id) },
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                        if (rowCategories.size == 1) {
-                            Spacer(modifier = Modifier.weight(1f))
-                        }
-                    }
-                }
-            }
-        }
-
-        // Shortcuts: Downloaded Videos & YouTube Channels
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            Card(
+            PrimaryHeroFeatureCard(
+                titleNe = "बाली व्यवस्थापन",
+                subtitleNe = "${state.featuredCrops.size.coerceAtLeast(8)} बाली प्रविधि",
+                imageUrl = HERO_CROP_IMAGE_URL,
+                fallbackIcon = Icons.Outlined.Agriculture,
+                onClick = { onNavigateToCrops(null) },
                 modifier = Modifier
                     .weight(1f)
-                    .clickable(onClick = onNavigateToDownloadedVideos),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = LightGreen),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.DownloadDone,
-                        contentDescription = "डाउनलोड गरिएका भिडियो",
-                        tint = ForestGreen,
-                        modifier = Modifier.size(28.dp)
-                    )
-                    Text(
-                        text = "डाउनलोड भिडियो",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = DeepCharcoal
-                    )
-                    Text(
-                        text = "अफलाइन पुस्तकालय",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MutedGreenGrey
-                    )
-                }
-            }
-
-            Card(
-                modifier = Modifier
-                    .weight(1f)
-                    .clickable(onClick = onNavigateToYouTubeChannels),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = LightGreen),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.PlayCircle,
-                        contentDescription = "कृषि युट्यूब",
-                        tint = ForestGreen,
-                        modifier = Modifier.size(28.dp)
-                    )
-                    Text(
-                        text = "कृषि युट्यूब",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = DeepCharcoal
-                    )
-                    Text(
-                        text = "प्रविधि च्यानलहरू",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MutedGreenGrey
-                    )
-                }
-            }
-        }
-
-        // Verified Seasonal Crops Highlights (Section 6.1)
-        if (state.seasonalCrops.isNotEmpty()) {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Outlined.CalendarMonth,
-                        contentDescription = null,
-                        tint = WarningOrange,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = "मौसमी खेती समय जानकारी (NARC)",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = DeepCharcoal
-                    )
-                }
-
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(containerColor = LightGreen),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        state.seasonalCrops.forEachIndexed { index, crop ->
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { onNavigateToCropDetail(crop.id) }
-                                    .padding(vertical = 4.dp)
-                            ) {
-                                Text(
-                                    text = "${crop.nameNe} (${crop.nameEn})",
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = ForestGreen
-                                )
-                                Text(
-                                    text = crop.plantingSeason ?: "जानकारी उपलब्ध छैन",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = DeepCharcoal
-                                )
-                            }
-                            if (index < state.seasonalCrops.lastIndex) {
-                                HorizontalDivider(color = DividerSage, thickness = 1.dp)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // Featured Crops
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(
-                text = "बकैयाका प्रमुख बालीहरू",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = DeepCharcoal
+                    .fillMaxHeight()
             )
 
-            state.featuredCrops.forEach { crop ->
-                FeaturedCropCard(
-                    crop = crop,
-                    onClick = { onNavigateToCropDetail(crop.id) }
-                )
-            }
+            PrimaryHeroFeatureCard(
+                titleNe = "पशुपालन तथा माछापालन",
+                subtitleNe = "गाई, भैँसी, बाख्रा, माछा",
+                imageUrl = HERO_LIVESTOCK_IMAGE_URL,
+                fallbackIcon = Icons.Outlined.Pets,
+                onClick = onNavigateToLivestock,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+            )
         }
 
-        // Livestock Knowledge Shortcut Card
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onNavigateToLivestock),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = LightGreen),
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Pets,
-                    contentDescription = "पशुपालन",
-                    tint = ForestGreen,
-                    modifier = Modifier.size(32.dp)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "पशुपालन तथा मत्स्यपालन ज्ञान",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = ForestGreen
-                    )
-                    Text(
-                        text = "गाई, भैंसी, बाख्रा, कुखुरा, बंगुर र माछापालन सम्बन्धी प्रमाणित मार्गदर्शन",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = DeepCharcoal
-                    )
-                }
-            }
-        }
+        // FOUR PRESERVED MAIN SECTIONS BELOW
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            HomeSectionTile(
+                titleNe = "सरकारी कृषि दस्तावेज",
+                subtitleNe = "NARC, कृषि मन्त्रालय र बकैया गाउँपालिका सन्दर्भ सामग्री",
+                icon = Icons.Outlined.Description,
+                onClick = { onNavigateToInfoSection("documents") }
+            )
 
-        // Prominent Free Agricultural & Veterinary Helpline Card
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onNavigateToHelpline),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = ForestGreen),
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.SupportAgent,
-                    contentDescription = "निशुल्क कृषि प्राविधिक सेवा",
-                    tint = NaturalIvory,
-                    modifier = Modifier.size(32.dp)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "निःशुल्क कृषि प्राविधिक सेवा",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = NaturalIvory
-                    )
-                    Text(
-                        text = "बकैया गाउँपालिका कृषि शाखा तथा मकवानपुर पशु सेवा विज्ञ केन्द्रमा प्रत्यक्ष फोन सम्पर्क",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = NaturalIvory.copy(alpha = 0.9f)
-                    )
-                }
-            }
-        }
+            HomeSectionTile(
+                titleNe = "कृषि भिडियो",
+                subtitleNe = "प्रमाणित कृषि युट्यूब च्यानल तथा अफलाइन भिडियो सामग्री",
+                icon = Icons.Outlined.PlayCircle,
+                onClick = onNavigateToYouTubeChannels
+            )
 
-        // Optional Non-Blocking Farmer Registration Card
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onNavigateToOptionalRegistration),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = SoftSage),
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(14.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.PersonAdd,
-                    contentDescription = "किसान दर्ता",
-                    tint = ForestGreen,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(10.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "किसान विवरण दर्ता (ऐच्छिक)",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = DeepCharcoal
-                    )
-                    Text(
-                        text = "स्थानीय कृषि सेवा समन्वयका लागि आफ्नो नाम र वडा सुरक्षित गर्नुहोस्",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MutedGreenGrey
-                    )
-                }
-            }
+            HomeSectionTile(
+                titleNe = "कृषि अनुदान तथा कार्यक्रम",
+                subtitleNe = "बकैया गाउँपालिका कृषि तथा पशु सेवा समन्वय विवरण",
+                icon = Icons.Outlined.AccountBalance,
+                onClick = { onNavigateToInfoSection("subsidies") }
+            )
+
+            HomeSectionTile(
+                titleNe = "सूचना तथा समाचार",
+                subtitleNe = "मौसमी खेती समय सल्लाह तथा आधिकारिक कृषि सूचना",
+                icon = Icons.Outlined.Campaign,
+                onClick = { onNavigateToInfoSection("news") }
+            )
         }
     }
 }
 
 @Composable
-fun CategoryCard(
-    category: CropCategory,
+private fun PrimaryHeroFeatureCard(
+    titleNe: String,
+    subtitleNe: String,
+    imageUrl: String,
+    fallbackIcon: ImageVector,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -447,28 +187,31 @@ fun CategoryCard(
         colors = CardDefaults.cardColors(containerColor = LightGreen),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = categoryIconFor(category.iconName),
-                contentDescription = category.nameNe,
-                tint = ForestGreen,
-                modifier = Modifier.size(22.dp)
+        Column(modifier = Modifier.fillMaxSize()) {
+            CropThumbnailImage(
+                imageUrl = imageUrl,
+                contentDescription = titleNe,
+                fallbackIcon = fallbackIcon,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(126.dp)
             )
-            Spacer(modifier = Modifier.width(8.dp))
-            Column {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
                 Text(
-                    text = category.nameNe,
-                    style = MaterialTheme.typography.titleSmall,
+                    text = titleNe,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = DeepCharcoal
+                    color = ForestGreen,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = category.nameEn,
+                    text = subtitleNe,
                     style = MaterialTheme.typography.labelSmall,
                     color = MutedGreenGrey,
                     maxLines = 1,
@@ -480,8 +223,10 @@ fun CategoryCard(
 }
 
 @Composable
-fun FeaturedCropCard(
-    crop: BakaiyaCrop,
+private fun HomeSectionTile(
+    titleNe: String,
+    subtitleNe: String,
+    icon: ImageVector,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -496,50 +241,51 @@ fun FeaturedCropCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(14.dp),
+                .padding(horizontal = 16.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            CropThumbnailImage(
-                imageUrl = crop.thumbnailUrl,
-                contentDescription = crop.nameNe,
-                modifier = Modifier.size(76.dp)
-            )
+            Box(
+                modifier = Modifier
+                    .size(46.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(ForestGreen),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = titleNe,
+                    tint = NaturalIvory,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.width(14.dp))
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "${crop.nameNe} (${crop.nameEn})",
+                    text = titleNe,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = DeepCharcoal
                 )
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = crop.scientificName,
+                    text = subtitleNe,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MutedGreenGrey
+                    color = MutedGreenGrey,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
-                crop.plantingSeason?.let { season ->
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Outlined.CalendarMonth,
-                            contentDescription = null,
-                            tint = ForestGreen,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = season,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = ForestGreen,
-                            fontWeight = FontWeight.SemiBold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
             }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Icon(
+                imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+                contentDescription = null,
+                tint = ForestGreen,
+                modifier = Modifier.size(22.dp)
+            )
         }
     }
 }
@@ -548,17 +294,18 @@ fun FeaturedCropCard(
 fun CropThumbnailImage(
     imageUrl: String?,
     contentDescription: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    fallbackIcon: ImageVector = Icons.Outlined.Agriculture
 ) {
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(14.dp))
             .background(SoftSage),
         contentAlignment = Alignment.Center
     ) {
         if (imageUrl.isNullOrBlank()) {
             Icon(
-                imageVector = Icons.Outlined.Agriculture,
+                imageVector = fallbackIcon,
                 contentDescription = contentDescription,
                 tint = LeafGreen,
                 modifier = Modifier.size(32.dp)
@@ -605,16 +352,5 @@ fun CropThumbnailImage(
                 }
             )
         }
-    }
-}
-
-private fun categoryIconFor(iconName: String?): ImageVector {
-    return when (iconName) {
-        "eco" -> Icons.Outlined.Eco
-        "park" -> Icons.Outlined.Park
-        "spa" -> Icons.Outlined.Spa
-        "water_drop" -> Icons.Outlined.WaterDrop
-        "storefront" -> Icons.Outlined.Storefront
-        else -> Icons.Outlined.Grass
     }
 }

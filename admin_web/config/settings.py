@@ -5,7 +5,8 @@ Zero hardcoded database secrets or API credentials; all sensitive values come fr
 
 from pathlib import Path
 import os
-from urllib.parse import urlparse
+import sys
+from urllib.parse import parse_qs, urlparse
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -32,6 +33,8 @@ def _parse_database_url(db_url: str) -> dict:
             "NAME": sqlite_name,
         }
     parsed = urlparse(db_url)
+    query = parse_qs(parsed.query)
+    sslmode = (query.get("sslmode") or ["require"])[0]
     return {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": parsed.path.lstrip("/") or "postgres",
@@ -40,6 +43,7 @@ def _parse_database_url(db_url: str) -> dict:
         "HOST": parsed.hostname or "localhost",
         "PORT": str(parsed.port or 5432),
         "CONN_MAX_AGE": 600,
+        "OPTIONS": {"sslmode": sslmode},
     }
 
 
@@ -102,9 +106,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-# Database configuration: env-driven DATABASE_URL (PostgreSQL in production, SQLite fallback for local dev/tests)
+# Database configuration: env-driven DATABASE_URL (Supabase PostgreSQL).
+# Automated tests stay on local SQLite so they never write to the cloud database.
+_argv = " ".join(sys.argv)
+_running_tests = "test" in sys.argv or "pytest" in _argv
 DATABASES = {
-    "default": _parse_database_url(os.environ.get("DATABASE_URL", ""))
+    "default": _parse_database_url(
+        "" if _running_tests else os.environ.get("DATABASE_URL", "")
+    )
 }
 
 AUTH_PASSWORD_VALIDATORS = [

@@ -35,6 +35,11 @@ class BakaiyaSeedDataIntegrityTest {
             val gc = crop.growingConditions
             assertTrue("Crop ${crop.id} category missing", categoryIds.contains(crop.categoryId))
             assertTrue("Crop ${crop.id} Nepali name blank", crop.nameNe.isNotBlank())
+            assertTrue("Crop ${crop.id} missing thumbnailUrl", !crop.thumbnailUrl.isNullOrBlank())
+            assertTrue(
+                "Category ${crop.categoryId} missing thumbnailUrl",
+                BakaiyaSeedData.categoryThumbnailUrl(crop.categoryId).startsWith("https://")
+            )
             assertTrue("Crop ${crop.id} source blank", crop.sourceReference.isNotBlank())
             assertFalse("Crop ${crop.id} lastUpdatedDate blank", gc.lastUpdatedDate.isNullOrBlank())
 

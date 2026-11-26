@@ -20,10 +20,12 @@ import com.krishisaathi.app.ui.screens.crops.CropsViewModel
 import com.krishisaathi.app.ui.screens.helpline.HelplineScreen
 import com.krishisaathi.app.ui.screens.home.HomeScreen
 import com.krishisaathi.app.ui.screens.home.HomeViewModel
-import com.krishisaathi.app.ui.screens.livestock.LivestockScreen
-import com.krishisaathi.app.ui.screens.livestock.LivestockViewModel
+import com.krishisaathi.app.ui.screens.home.InfoHubScreen
 import com.krishisaathi.app.ui.screens.livestock.AnimalDetailScreen
 import com.krishisaathi.app.ui.screens.livestock.AnimalDetailViewModel
+import com.krishisaathi.app.ui.screens.livestock.LivestockScreen
+import com.krishisaathi.app.ui.screens.livestock.LivestockViewModel
+import com.krishisaathi.app.ui.screens.profile.ProfileScreen
 import com.krishisaathi.app.ui.screens.registration.RegistrationScreen
 import com.krishisaathi.app.ui.screens.registration.RegistrationViewModel
 import com.krishisaathi.app.ui.screens.videos.DownloadedVideosScreen
@@ -97,6 +99,11 @@ fun KrishiSaathiNavHost(
                     navController.navigate("registration") {
                         launchSingleTop = true
                     }
+                },
+                onNavigateToInfoSection = { sectionType ->
+                    navController.navigate("info_section/$sectionType") {
+                        launchSingleTop = true
+                    }
                 }
             )
         }
@@ -153,12 +160,49 @@ fun KrishiSaathiNavHost(
             )
         }
 
-        // ---- TAB 4: किसान हेल्पलाइन (Helpline) ----
+        // ---- TAB 4: हेल्पलाइन (Helpline) ----
         composable(BottomNavItem.Helpline.route) {
             HelplineScreen(appContainer = appContainer)
         }
 
-        // ---- DETAIL SCREENS (not tabs) ----
+        // ---- TAB 5: प्रोफाइल (Profile) ----
+        composable(BottomNavItem.Profile.route) {
+            ProfileScreen(
+                appContainer = appContainer,
+                onNavigateToRegistration = {
+                    navController.navigate("registration") {
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
+        // ---- DETAIL & HUB SCREENS ----
+        composable(
+            route = "info_section/{sectionType}",
+            arguments = listOf(navArgument("sectionType") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val sectionType = backStackEntry.arguments?.getString("sectionType") ?: "documents"
+            InfoHubScreen(
+                sectionType = sectionType,
+                appContainer = appContainer,
+                onBackClick = { navController.popBackStack() },
+                onOpenHelpline = {
+                    navController.navigate(BottomNavItem.Helpline.route) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                    }
+                },
+                onOpenCropDetail = { cropId ->
+                    navController.navigate("crop_detail/$cropId") {
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
         composable(
             route = "crop_detail/{cropId}",
             arguments = listOf(navArgument("cropId") { type = NavType.StringType })
@@ -244,7 +288,8 @@ fun KrishiSaathiNavHost(
             )
             RegistrationScreen(
                 viewModel = registrationViewModel,
-                onRegistrationComplete = { navController.popBackStack() }
+                onRegistrationComplete = { navController.popBackStack() },
+                dataStoreManager = appContainer.dataStoreManager
             )
         }
     }

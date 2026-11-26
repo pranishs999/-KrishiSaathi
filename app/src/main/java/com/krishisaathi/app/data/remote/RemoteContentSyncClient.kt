@@ -1,20 +1,150 @@
 package com.krishisaathi.app.data.remote
 
+import com.krishisaathi.app.domain.model.FarmerRegistration
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import org.json.JSONArray
 import java.net.HttpURLConnection
 import java.net.URL
 
+data class RemoteFarmerProfileSnapshot(
+    val fullName: String? = null,
+    val phoneNumber: String? = null,
+    val municipality: String? = null,
+    val wardNumber: Int? = null,
+    val toleVillage: String? = null
+)
+
+@Serializable
+private data class SupabaseFarmerRegistrationPayload(
+    val id: String,
+    @SerialName("full_name") val fullName: String,
+    val municipality: String,
+    @SerialName("ward_number") val wardNumber: Int,
+    @SerialName("phone_number") val phoneNumber: String,
+    @SerialName("registered_at") val registeredAt: Long
+)
+
+@Serializable
+private data class SupabaseFarmerProfilePayload(
+    val phone: String,
+    @SerialName("full_name") val fullName: String,
+    @SerialName("mpin_hash") val mpinHash: String = "bakaiya_app_no_auth",
+    val municipality: String,
+    @SerialName("ward_number") val wardNumber: Int
+)
+
 /**
- * Coordinates remote published-content synchronization for crops, livestock, and verified helpline records.
- * Strictly fetches published records only and falls back safely to local Room/Seed storage offline.
+ * Coordinates remote published-content and farmer-profile synchronization against the
+ * existing Supabase project without embedding private credentials or service keys.
  */
 class RemoteContentSyncClient(
     private val supabaseClient: SupabaseClient?,
     private val cmsPublicBaseUrl: String? = null
 ) {
+
+    val isSupabaseConfigured: Boolean
+        get() = supabaseClient != null
+
+    suspend fun uploadFarmerRegistration(registration: FarmerRegistration): Result<Unit> =
+        withContext(Dispatchers.IO) {
+            val client = supabaseClient
+                ?: return@withContext Result.failure(IllegalStateException("Supabase client unavailable"))
+
+            // Primary target on existing Supabase schema: public.farmer_profiles (shared with admin_web)
+            val profileUpload = runCatching {
+                client.from("farmer_profiles").upsert(
+                    SupabaseFarmerProfilePayload(
+                        phone = registration.phoneNumber,
+                        fullName = registration.fullName,
+                        municipality = registration.municipality,
+                        wardNumber = registration.wardNumber
+                    )
+                ) {
+                    onConflict = "phone"
+                }
+            }
+            if (profileUpload.isSuccess) {
+                return@withContext Result.success(Unit)
+            }
+
+            // Secondary target for migration 001/003 deployments: public.farmer_registration
+            try {
+                val recordId = "reg-${registration.phoneNumber}-${registration.registeredAt}"
+                client.from("farmer_registration").insert(
+                    SupabaseFarmerRegistrationPayload(
+                        id = recordId,
+                        fullName = registration.fullName,
+                        municipality = registration.municipality,
+                        wardNumber = registration.wardNumber,
+                        phoneNumber = registration.phoneNumber,
+                        registeredAt = registration.registeredAt
+                    )
+                )
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+
+    suspend fun fetchFarmerProfileByPhone(phoneNumber: String): RemoteFarmerProfileSnapshot? =
+        withContext(Dispatchers.IO) {
+            val client = supabaseClient ?: return@withContext null
+            val cleanedPhone = phoneNumber.trim()
+            if (cleanedPhone.isEmpty()) return@withContext null
+
+            try {
+                val res = client.from("farmer_registration").select {
+                    filter {
+                        eq("phone_number", cleanedPhone)
+                    }
+                }
+                val array = JSONArray(res.data)
+                if (array.length() > 0) {
+                    val obj = array.getJSONObject(0)
+                    return@withContext RemoteFarmerProfileSnapshot(
+                        fullName = obj.optString("full_name").takeIf { it.isNotBlank() },
+                        phoneNumber = obj.optString("phone_number").takeIf { it.isNotBlank() },
+                        municipality = obj.optString("municipality").takeIf { it.isNotBlank() },
+                        wardNumber = if (obj.has("ward_number") && !obj.isNull("ward_number")) {
+                            obj.optInt("ward_number")
+                        } else null,
+                        toleVillage = obj.optString("tole_village").takeIf { it.isNotBlank() }
+                    )
+                }
+            } catch (_: Exception) {
+                // Fall back cleanly to local stored registration or farmer_profiles check
+            }
+
+            try {
+                val res = client.from("farmer_profiles").select {
+                    filter {
+                        eq("phone", cleanedPhone)
+                    }
+                }
+                val array = JSONArray(res.data)
+                if (array.length() > 0) {
+                    val obj = array.getJSONObject(0)
+                    return@withContext RemoteFarmerProfileSnapshot(
+                        fullName = obj.optString("full_name").takeIf { it.isNotBlank() },
+                        phoneNumber = obj.optString("phone").takeIf { it.isNotBlank() },
+                        municipality = obj.optString("municipality").takeIf { it.isNotBlank() },
+                        wardNumber = if (obj.has("ward_number") && !obj.isNull("ward_number")) {
+                            obj.optInt("ward_number")
+                        } else null,
+                        toleVillage = obj.optString("tole").takeIf { it.isNotBlank() }
+                    )
+                }
+            } catch (_: Exception) {
+                // Offline or table protected by strict RLS: fail safely without crashing UI
+            }
+
+            null
+        }
 
     suspend fun fetchPublishedLivestockJson(): Result<String?> = withContext(Dispatchers.IO) {
         try {
@@ -33,7 +163,11 @@ class RemoteContentSyncClient(
             if (supabaseClient != null) {
                 val response = supabaseClient
                     .from("animals")
-                    .select()
+                    .select {
+                        filter {
+                            eq("is_published", true)
+                        }
+                    }
                 return@withContext Result.success(response.data)
             }
 

@@ -13,6 +13,9 @@ class LivestockSeedDataIntegrityTest {
         assertEquals(4, BakaiyaLivestockSeedData.animalCategories.size)
         val ids = BakaiyaLivestockSeedData.animalCategories.map { it.id }.toSet()
         assertTrue(ids.containsAll(setOf("acat-cattle-buffalo", "acat-goat", "acat-poultry", "acat-pig-fish")))
+        BakaiyaLivestockSeedData.animalCategories.forEach { category ->
+            assertFalse("Category ${category.id} missing image", category.thumbnailUrl.isNullOrBlank())
+        }
     }
 
     @Test

@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.krishisaathi.app.di.AppContainer
 import com.krishisaathi.app.domain.model.BakaiyaCrop
 import com.krishisaathi.app.domain.model.CropCategory
+import com.krishisaathi.app.domain.model.FarmerRegistration
 import com.krishisaathi.app.domain.repository.BakaiyaCropRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,6 +20,7 @@ data class HomeUiState(
     val categories: List<CropCategory> = emptyList(),
     val featuredCrops: List<BakaiyaCrop> = emptyList(),
     val seasonalCrops: List<BakaiyaCrop> = emptyList(),
+    val farmerRegistration: FarmerRegistration? = null,
     val isLoading: Boolean = false
 )
 
@@ -28,9 +30,9 @@ class HomeViewModel(
 
     val uiState: StateFlow<HomeUiState> = combine(
         repository.getCategories(),
-        repository.getCrops()
-    ) { categories, crops ->
-        // Only show seasonal crops that actually have verified plantingSeason strings
+        repository.getCrops(),
+        repository.getFarmerRegistration()
+    ) { categories, crops, farmer ->
         val verifiedSeasonal = crops.filter {
             it.isVerifiedContent && !it.plantingSeason.isNullOrBlank()
         }.take(3)
@@ -39,6 +41,7 @@ class HomeViewModel(
             categories = categories,
             featuredCrops = crops.take(4),
             seasonalCrops = verifiedSeasonal,
+            farmerRegistration = farmer,
             isLoading = false
         )
     }.stateIn(
