@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 data class CropsUiState(
     val categories: List<CropCategory> = emptyList(),
@@ -58,6 +59,18 @@ class CropsViewModel(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = CropsUiState(isLoading = true, selectedCategoryId = initialCategoryId)
     )
+
+    init {
+        viewModelScope.launch {
+            repository.ensureContentSeeded()
+        }
+    }
+
+    fun refresh() {
+        viewModelScope.launch {
+            repository.syncRemoteContent()
+        }
+    }
 
     fun onSearchQueryChanged(query: String) {
         _searchQuery.value = query

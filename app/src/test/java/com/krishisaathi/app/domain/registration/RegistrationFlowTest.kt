@@ -60,6 +60,11 @@ class RegistrationFlowTest {
         assertTrue(invalidPhoneOutcome is RegistrationOutcome.ValidationFailed)
         assertNotNull((invalidPhoneOutcome as RegistrationOutcome.ValidationFailed).validation.phoneError)
 
+        // Missing consent
+        val missingConsentOutcome = coordinator.registerFarmer("सीता माया", 4, "9841234567", "हात्तीसुँडे", consentGiven = false)
+        assertTrue(missingConsentOutcome is RegistrationOutcome.ValidationFailed)
+        assertNotNull((missingConsentOutcome as RegistrationOutcome.ValidationFailed).validation.consentError)
+
         assertFalse(prefs.isCompleted.value)
         assertNull(repo.registration.value)
         assertEquals(AppEntryState.NeedsRegistration, coordinator.observeEntryState().first())
@@ -159,7 +164,9 @@ class RegistrationFlowTest {
             name: String,
             ward: Int,
             phone: String,
-            municipality: String
+            municipality: String,
+            toleVillage: String,
+            consentStatus: Boolean
         ): Result<Unit> {
             if (failSave) {
                 return Result.failure(IllegalStateException("Simulated Room save failure"))
@@ -169,10 +176,14 @@ class RegistrationFlowTest {
                 municipality = municipality,
                 wardNumber = ward,
                 phoneNumber = phone,
+                toleVillage = toleVillage,
+                consentStatus = consentStatus,
                 registeredAt = 123456789L
             )
             return Result.success(Unit)
         }
+
+        override suspend fun retryPendingRegistrationSync(): Result<Unit> = Result.success(Unit)
 
         override suspend fun clearFarmerRegistration(): Result<Unit> {
             registration.value = null

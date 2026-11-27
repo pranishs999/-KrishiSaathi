@@ -21,6 +21,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BrokenImage
 import androidx.compose.material.icons.outlined.Pets
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -183,6 +185,16 @@ fun LivestockScreen(
                     style = MaterialTheme.typography.bodyLarge,
                     color = MutedGreenGrey
                 )
+                if (!state.isLoading) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Button(
+                        onClick = viewModel::refresh,
+                        colors = ButtonDefaults.buttonColors(containerColor = ForestGreen),
+                        shape = RoundedCornerShape(24.dp)
+                    ) {
+                        Text("Supabase बाट सिंक गर्नुहोस्", color = NaturalIvory)
+                    }
+                }
             }
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {

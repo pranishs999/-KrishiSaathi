@@ -11,7 +11,9 @@ data class CategoryEntity(
     @PrimaryKey val id: String,
     @ColumnInfo(name = "name_ne") val nameNe: String,
     @ColumnInfo(name = "name_en") val nameEn: String,
-    @ColumnInfo(name = "icon_name") val iconName: String? = null
+    @ColumnInfo(name = "icon_name") val iconName: String? = null,
+    @ColumnInfo(name = "thumbnail_url") val thumbnailUrl: String? = null,
+    @ColumnInfo(name = "sort_order") val sortOrder: Int = 0
 )
 
 /**
@@ -170,5 +172,133 @@ data class FarmerRegistrationEntity(
     @ColumnInfo(name = "municipality") val municipality: String = "बकैया गाउँपालिका, मकवानपुर",
     @ColumnInfo(name = "ward_number") val wardNumber: Int,
     @ColumnInfo(name = "phone_number") val phoneNumber: String,
-    @ColumnInfo(name = "registered_at") val registeredAt: Long = System.currentTimeMillis()
+    @ColumnInfo(name = "tole_village") val toleVillage: String = "",
+    @ColumnInfo(name = "consent_status") val consentStatus: Boolean = false,
+    @ColumnInfo(name = "registered_at") val registeredAt: Long = System.currentTimeMillis(),
+    /** Tracks remote sync state: SYNCED, PENDING, or FAILED. */
+    @ColumnInfo(name = "sync_status") val syncStatus: String = "PENDING"
+)
+
+// ---- Livestock Room Entities (populated strictly via Supabase sync) ----
+
+@Entity(tableName = "animal_categories")
+data class AnimalCategoryEntity(
+    @PrimaryKey val id: String,
+    @ColumnInfo(name = "name_ne") val nameNe: String,
+    @ColumnInfo(name = "name_en") val nameEn: String,
+    @ColumnInfo(name = "description_ne") val descriptionNe: String? = null,
+    @ColumnInfo(name = "icon_name") val iconName: String? = null,
+    @ColumnInfo(name = "thumbnail_url") val thumbnailUrl: String? = null,
+    @ColumnInfo(name = "sort_order") val sortOrder: Int = 0
+)
+
+@Entity(
+    tableName = "animals",
+    indices = [Index(value = ["category_id"]), Index(value = ["is_published"])]
+)
+data class AnimalEntity(
+    @PrimaryKey val id: String,
+    @ColumnInfo(name = "category_id") val categoryId: String,
+    @ColumnInfo(name = "name_ne") val nameNe: String,
+    @ColumnInfo(name = "name_en") val nameEn: String,
+    @ColumnInfo(name = "scientific_name") val scientificName: String? = null,
+    @ColumnInfo(name = "species_code") val speciesCode: String,
+    @ColumnInfo(name = "summary_ne") val summaryNe: String,
+    @ColumnInfo(name = "purpose_tags_ne") val purposeTagsNe: String? = null,
+    @ColumnInfo(name = "bakaiya_relevance_ne") val bakaiyaRelevanceNe: String? = null,
+    @ColumnInfo(name = "climate_suitability_ne") val climateSuitabilityNe: String? = null,
+    @ColumnInfo(name = "altitude_range_ne") val altitudeRangeNe: String? = null,
+    @ColumnInfo(name = "recommended_breeds_summary_ne") val recommendedBreedsSummaryNe: String? = null,
+    @ColumnInfo(name = "safety_notice_ne") val safetyNoticeNe: String,
+    @ColumnInfo(name = "source_reference") val sourceReference: String,
+    @ColumnInfo(name = "thumbnail_url") val thumbnailUrl: String? = null,
+    @ColumnInfo(name = "review_status") val reviewStatus: String = "published",
+    @ColumnInfo(name = "is_verified_content") val isVerifiedContent: Boolean = true,
+    @ColumnInfo(name = "is_published") val isPublished: Boolean = true,
+    @ColumnInfo(name = "sort_order") val sortOrder: Int = 0
+)
+
+@Entity(tableName = "animal_breeds", indices = [Index(value = ["animal_id"])])
+data class AnimalBreedEntity(
+    @PrimaryKey val id: String,
+    @ColumnInfo(name = "animal_id") val animalId: String,
+    @ColumnInfo(name = "breed_name_ne") val breedNameNe: String,
+    @ColumnInfo(name = "breed_name_en") val breedNameEn: String? = null,
+    @ColumnInfo(name = "origin_type") val originType: String,
+    @ColumnInfo(name = "purpose_ne") val purposeNe: String,
+    @ColumnInfo(name = "climate_suitability_ne") val climateSuitabilityNe: String? = null,
+    @ColumnInfo(name = "characteristics_ne") val characteristicsNe: String,
+    @ColumnInfo(name = "notes_ne") val notesNe: String? = null,
+    @ColumnInfo(name = "source_reference") val sourceReference: String,
+    @ColumnInfo(name = "sort_order") val sortOrder: Int = 0
+)
+
+@Entity(tableName = "animal_housing_guidance", indices = [Index(value = ["animal_id"])])
+data class AnimalHousingEntity(
+    @PrimaryKey val id: String,
+    @ColumnInfo(name = "animal_id") val animalId: String,
+    @ColumnInfo(name = "shed_design_ne") val shedDesignNe: String,
+    @ColumnInfo(name = "floor_space_standard_ne") val floorSpaceStandardNe: String? = null,
+    @ColumnInfo(name = "ventilation_light_ne") val ventilationLightNe: String,
+    @ColumnInfo(name = "bedding_drainage_ne") val beddingDrainageNe: String,
+    @ColumnInfo(name = "sanitation_routine_ne") val sanitationRoutineNe: String,
+    @ColumnInfo(name = "biosecurity_notes_ne") val biosecurityNotesNe: String,
+    @ColumnInfo(name = "source_reference") val sourceReference: String
+)
+
+@Entity(tableName = "animal_feeding_guidance", indices = [Index(value = ["animal_id"])])
+data class AnimalFeedingEntity(
+    @PrimaryKey val id: String,
+    @ColumnInfo(name = "animal_id") val animalId: String,
+    @ColumnInfo(name = "green_fodder_forage_ne") val greenFodderForageNe: String,
+    @ColumnInfo(name = "dry_roughage_ne") val dryRoughageNe: String,
+    @ColumnInfo(name = "concentrate_feed_ne") val concentrateFeedNe: String? = null,
+    @ColumnInfo(name = "mineral_salt_ne") val mineralSaltNe: String? = null,
+    @ColumnInfo(name = "clean_water_ne") val cleanWaterNe: String,
+    @ColumnInfo(name = "ration_quantity_note_ne") val rationQuantityNoteNe: String? = null,
+    @ColumnInfo(name = "feeding_frequency_ne") val feedingFrequencyNe: String,
+    @ColumnInfo(name = "source_reference") val sourceReference: String
+)
+
+@Entity(tableName = "animal_health_guidance", indices = [Index(value = ["animal_id"])])
+data class AnimalHealthEntity(
+    @PrimaryKey val id: String,
+    @ColumnInfo(name = "animal_id") val animalId: String,
+    @ColumnInfo(name = "daily_hygiene_ne") val dailyHygieneNe: String,
+    @ColumnInfo(name = "biosecurity_isolation_ne") val biosecurityIsolationNe: String,
+    @ColumnInfo(name = "vaccination_awareness_ne") val vaccinationAwarenessNe: String,
+    @ColumnInfo(name = "deworming_parasite_control_ne") val dewormingParasiteControlNe: String,
+    @ColumnInfo(name = "warning_signs_ne") val warningSignsNe: String,
+    @ColumnInfo(name = "vet_referral_guidance_ne") val vetReferralGuidanceNe: String,
+    @ColumnInfo(name = "source_reference") val sourceReference: String
+)
+
+@Entity(tableName = "animal_diseases", indices = [Index(value = ["animal_id"])])
+data class AnimalDiseaseEntity(
+    @PrimaryKey val id: String,
+    @ColumnInfo(name = "animal_id") val animalId: String,
+    @ColumnInfo(name = "name_ne") val nameNe: String,
+    @ColumnInfo(name = "name_en") val nameEn: String? = null,
+    @ColumnInfo(name = "pathogen_type") val pathogenType: String? = null,
+    @ColumnInfo(name = "symptoms_ne") val symptomsNe: String,
+    @ColumnInfo(name = "prevention_biosecurity_ne") val preventionBiosecurityNe: String,
+    @ColumnInfo(name = "immediate_farmer_action_ne") val immediateFarmerActionNe: String,
+    @ColumnInfo(name = "veterinary_caution_ne") val veterinaryCautionNe: String,
+    @ColumnInfo(name = "source_reference") val sourceReference: String,
+    @ColumnInfo(name = "sort_order") val sortOrder: Int = 0
+)
+
+@Entity(tableName = "animal_images", indices = [Index(value = ["animal_id"])])
+data class AnimalImageEntity(
+    @PrimaryKey val id: String,
+    @ColumnInfo(name = "animal_id") val animalId: String,
+    @ColumnInfo(name = "image_url") val imageUrl: String,
+    @ColumnInfo(name = "medium_url") val mediumUrl: String? = null,
+    @ColumnInfo(name = "thumb_url") val thumbUrl: String? = null,
+    @ColumnInfo(name = "caption_ne") val captionNe: String,
+    @ColumnInfo(name = "stage_category") val stageCategory: String = "general",
+    @ColumnInfo(name = "creator_name") val creatorName: String? = null,
+    @ColumnInfo(name = "source_url") val sourceUrl: String? = null,
+    @ColumnInfo(name = "license_type") val licenseType: String? = null,
+    @ColumnInfo(name = "sort_order") val sortOrder: Int = 0
 )

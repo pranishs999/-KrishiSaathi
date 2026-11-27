@@ -13,11 +13,13 @@ data class RegistrationValidationResult(
     val nameError: String? = null,
     val wardError: String? = null,
     val phoneError: String? = null,
+    val consentError: String? = null,
     val sanitizedName: String = "",
-    val normalizedPhone: String = ""
+    val normalizedPhone: String = "",
+    val sanitizedTole: String = ""
 ) {
     val isValid: Boolean
-        get() = nameError == null && wardError == null && phoneError == null
+        get() = nameError == null && wardError == null && phoneError == null && consentError == null
 }
 
 sealed interface RegistrationOutcome {
@@ -38,10 +40,13 @@ class FarmerRegistrationCoordinator(
     fun validate(
         rawName: String,
         selectedWard: Int?,
-        rawPhone: String
+        rawPhone: String,
+        rawTole: String = "",
+        consentGiven: Boolean = true
     ): RegistrationValidationResult {
         val sanitizedName = rawName.trim()
         val normalizedPhone = ValidationUtils.normalizeNepalMobileNumber(rawPhone)
+        val sanitizedTole = rawTole.trim()
 
         val nameError = if (sanitizedName.isEmpty()) {
             "कृपया किसानको नाम लेख्नुहोस्।"
@@ -58,22 +63,31 @@ class FarmerRegistrationCoordinator(
         } else {
             null
         }
+        val consentError = if (!consentGiven) {
+            "कृपया विवरण प्रयोगको सहमतिमा चिन्ह लगाउनुहोस्।"
+        } else {
+            null
+        }
 
         return RegistrationValidationResult(
             nameError = nameError,
             wardError = wardError,
             phoneError = phoneError,
+            consentError = consentError,
             sanitizedName = sanitizedName,
-            normalizedPhone = normalizedPhone
+            normalizedPhone = normalizedPhone,
+            sanitizedTole = sanitizedTole
         )
     }
 
     suspend fun registerFarmer(
         rawName: String,
         selectedWard: Int?,
-        rawPhone: String
+        rawPhone: String,
+        rawTole: String = "",
+        consentGiven: Boolean = true
     ): RegistrationOutcome {
-        val validation = validate(rawName, selectedWard, rawPhone)
+        val validation = validate(rawName, selectedWard, rawPhone, rawTole, consentGiven)
         if (!validation.isValid) {
             return RegistrationOutcome.ValidationFailed(validation)
         }
@@ -82,11 +96,14 @@ class FarmerRegistrationCoordinator(
             name = validation.sanitizedName,
             ward = selectedWard!!,
             phone = validation.normalizedPhone,
-            municipality = BakaiyaMunicipality.DEFAULT_NAME
+            municipality = BakaiyaMunicipality.DEFAULT_NAME,
+            toleVillage = validation.sanitizedTole,
+            consentStatus = consentGiven
         )
         if (saveResult.isFailure) {
             return RegistrationOutcome.PersistenceFailed(
-                "किसान विवरण सुरक्षित हुन सकेन। कृपया पुनः प्रयास गर्नुहोस्।"
+                saveResult.exceptionOrNull()?.message
+                    ?: "किसान विवरण सुरक्षित हुन सकेन। कृपया पुनः प्रयास गर्नुहोस्।"
             )
         }
 

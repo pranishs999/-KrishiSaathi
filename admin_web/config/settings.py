@@ -35,14 +35,17 @@ def _parse_database_url(db_url: str) -> dict:
     parsed = urlparse(db_url)
     query = parse_qs(parsed.query)
     sslmode = (query.get("sslmode") or ["require"])[0]
+    port = str(parsed.port or 5432)
+    # Transaction poolers (Supabase 6543) must not hold a session between requests.
+    conn_max_age = int(os.environ.get("DB_CONN_MAX_AGE", "0" if port == "6543" else "60"))
     return {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": parsed.path.lstrip("/") or "postgres",
         "USER": parsed.username or "postgres",
         "PASSWORD": parsed.password or "",
         "HOST": parsed.hostname or "localhost",
-        "PORT": str(parsed.port or 5432),
-        "CONN_MAX_AGE": 600,
+        "PORT": port,
+        "CONN_MAX_AGE": conn_max_age,
         "OPTIONS": {"sslmode": sslmode},
     }
 
@@ -54,11 +57,18 @@ SECRET_KEY = os.environ.get(
 )
 
 _allowed_env = os.environ.get("ALLOWED_HOSTS", "")
-ALLOWED_HOSTS = (
-    [h.strip() for h in _allowed_env.split(",") if h.strip()]
-    if _allowed_env
-    else ["localhost", "127.0.0.1", "testserver"]
-)
+ALLOWED_HOSTS = [h.strip() for h in _allowed_env.split(",") if h.strip()]
+_render_hostname = os.environ.get("RENDER_EXTERNAL_HOSTNAME", "").strip()
+for _default_host in (
+    "localhost",
+    "127.0.0.1",
+    "testserver",
+    ".onrender.com",
+    "bakaiya-krishi-saathi-cms.onrender.com",
+    _render_hostname,
+):
+    if _default_host and _default_host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_default_host)
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -78,6 +88,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -129,10 +140,27 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "/static/"
-STATICFILES_DIRS = [BASE_DIR / "static"]
+STATICFILES_DIRS = [BASE_DIR / "static"] if (BASE_DIR / "static").exists() else []
 STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+_csrf_env = os.environ.get("CSRF_TRUSTED_ORIGINS", "")
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in _csrf_env.split(",") if origin.strip()]
+if "https://*.onrender.com" not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append("https://*.onrender.com")
+if _render_hostname:
+    _render_origin = f"https://{_render_hostname}"
+    if _render_origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(_render_origin)
+
+if not DEBUG or os.environ.get("RENDER"):
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+if not DEBUG:
+    STORAGES = {
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
+    }
 
 LOGIN_URL = "cms:login"
 LOGIN_REDIRECT_URL = "cms:dashboard"

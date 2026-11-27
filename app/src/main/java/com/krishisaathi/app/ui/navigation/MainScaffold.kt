@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -51,6 +52,11 @@ fun MainScaffold(
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
+    // Retry any pending offline farmer registration automatically when MainScaffold opens
+    LaunchedEffect(Unit) {
+        appContainer.bakaiyaCropRepository.retryPendingRegistrationSync()
+    }
 
     val showChromeBars = currentRoute == BottomNavItem.Home.route ||
             currentRoute?.startsWith("crops") == true ||

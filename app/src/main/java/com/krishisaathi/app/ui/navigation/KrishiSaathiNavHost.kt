@@ -284,7 +284,7 @@ fun KrishiSaathiNavHost(
 
         composable("registration") {
             val registrationViewModel: RegistrationViewModel = viewModel(
-                factory = RegistrationViewModel.factory(appContainer)
+                factory = RegistrationViewModel.factory(appContainer, androidx.compose.ui.platform.LocalContext.current)
             )
             RegistrationScreen(
                 viewModel = registrationViewModel,

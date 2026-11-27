@@ -208,5 +208,19 @@ data class FarmerRegistration(
     val municipality: String = BakaiyaMunicipality.DEFAULT_NAME,
     val wardNumber: Int,
     val phoneNumber: String,
-    val registeredAt: Long = 0L
+    val toleVillage: String = "",
+    val consentStatus: Boolean = false,
+    val registeredAt: Long = 0L,
+    /** Tracks whether this registration has been confirmed by Supabase. */
+    val syncStatus: RegistrationSyncStatus = RegistrationSyncStatus.PENDING
 )
+
+/** Tracks the remote synchronization state of a farmer registration. */
+enum class RegistrationSyncStatus {
+    /** Successfully confirmed by Supabase. */
+    SYNCED,
+    /** Saved locally but not yet confirmed remotely. */
+    PENDING,
+    /** Remote submission failed; will be retried. */
+    FAILED
+}

@@ -19,6 +19,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.krishisaathi.app.ui.navigation.MainScaffold
 import com.krishisaathi.app.ui.screens.registration.RegistrationScreen
@@ -91,7 +92,7 @@ class MainActivity : ComponentActivity() {
 
                         RootStage.REGISTRATION -> {
                             val registrationViewModel: RegistrationViewModel = viewModel(
-                                factory = RegistrationViewModel.factory(appContainer)
+                                factory = RegistrationViewModel.factory(appContainer, LocalContext.current)
                             )
                             RegistrationScreen(
                                 viewModel = registrationViewModel,

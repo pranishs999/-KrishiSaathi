@@ -1,0 +1,58 @@
+{% extends "cms/base.html" %}
+{% block title %}Registered Farmers • Bakaiya Krishi Saathi Admin{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-wrap justify-between items-center gap-3">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">Registered Farmers</h1>
+            <p class="text-sm text-slate-600">Farmers registered via the Android application in Supabase PostgreSQL (farmer_profiles).</p>
+        </div>
+        <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold">Total: {{ farmers|length }}</span>
+    </div>
+
+    {% if db_error %}
+    <div class="p-4 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-900">
+        {{ db_error }}
+    </div>
+    {% endif %}
+
+    <div class="bg-white rounded-xl border shadow-sm overflow-x-auto">
+        <table class="w-full text-sm text-left">
+            <thead class="text-xs uppercase text-slate-500 border-b bg-slate-50">
+                <tr>
+                    <th class="px-4 py-3">Full Name</th>
+                    <th class="px-4 py-3">Mobile Number</th>
+                    <th class="px-4 py-3">Municipality</th>
+                    <th class="px-4 py-3">Ward</th>
+                    <th class="px-4 py-3">Village / Tole</th>
+                    <th class="px-4 py-3">Consent</th>
+                    <th class="px-4 py-3">Registered At</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y">
+                {% for f in farmers %}
+                <tr>
+                    <td class="px-4 py-3 font-semibold text-slate-900">{{ f.full_name }}</td>
+                    <td class="px-4 py-3 font-mono text-slate-700">+977 {{ f.phone }}</td>
+                    <td class="px-4 py-3 text-slate-700">{{ f.municipality }}</td>
+                    <td class="px-4 py-3">Ward {{ f.ward_number }}</td>
+                    <td class="px-4 py-3 text-slate-600">{{ f.tole_village|default:"—" }}</td>
+                    <td class="px-4 py-3">
+                        {% if f.consent_status %}
+                        <span class="px-2 py-0.5 rounded-full text-xs bg-emerald-100 text-emerald-800 font-semibold">Yes</span>
+                        {% else %}
+                        <span class="px-2 py-0.5 rounded-full text-xs bg-slate-100 text-slate-600">Legacy</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-xs text-slate-500">{{ f.created_at|date:"Y-m-d H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="px-4 py-8 text-center text-slate-500">No farmer registrations found in this database yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

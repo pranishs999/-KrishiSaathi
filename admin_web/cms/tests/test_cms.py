@@ -67,6 +67,10 @@ class CmsWorkflowAndSecurityTests(TestCase):
         self.assertIn("Editorial Overview", body)
         self.assertIn("Bakaiya Krishi Saathi Admin", body)
 
+        farmers_res = self.client.get("/cms/farmers/")
+        self.assertEqual(farmers_res.status_code, 200)
+        self.assertIn("Registered Farmers", farmers_res.content.decode("utf-8"))
+
     def test_workflow_prevents_publishing_without_source_and_enforces_rbac(self):
         crop = CropEntry.objects.create(
             id="crop-test-barley",
@@ -194,3 +198,18 @@ class CmsWorkflowAndSecurityTests(TestCase):
             self.assertTrue((tmp_path / meta["thumb_path"]).exists())
             self.assertTrue((tmp_path / meta["medium_path"]).exists())
             self.assertTrue((tmp_path / meta["original_path"]).exists())
+
+    def test_render_host_header_and_csrf_origin_are_allowed(self):
+        from django.conf import settings
+
+        self.assertIn(".onrender.com", settings.ALLOWED_HOSTS)
+        self.assertIn("https://*.onrender.com", settings.CSRF_TRUSTED_ORIGINS)
+
+        res_root = self.client.get("/", HTTP_HOST="bakaiya-krishi-saathi-cms.onrender.com")
+        self.assertEqual(res_root.status_code, 302)
+        self.assertIn("/cms/", res_root.url)
+
+        res_login = self.client.get(
+            "/cms/login/", HTTP_HOST="bakaiya-krishi-saathi-cms.onrender.com"
+        )
+        self.assertEqual(res_login.status_code, 200)

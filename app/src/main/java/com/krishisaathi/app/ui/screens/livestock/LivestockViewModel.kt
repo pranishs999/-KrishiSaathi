@@ -29,13 +29,23 @@ class LivestockViewModel(
     val uiState: StateFlow<LivestockUiState> = _uiState.asStateFlow()
 
     init {
-        loadLivestockData()
+        loadLivestockData(forceRemoteRefresh = false)
     }
 
-    private fun loadLivestockData() {
+    fun refresh() {
+        loadLivestockData(forceRemoteRefresh = true)
+    }
+
+    private fun loadLivestockData(forceRemoteRefresh: Boolean) {
+        _uiState.value = _uiState.value.copy(isLoading = true)
         viewModelScope.launch(appContainer.dispatchers.io) {
             try {
                 val repo = appContainer.bakaiyaCropRepository
+                if (forceRemoteRefresh) {
+                    repo.syncRemoteContent()
+                } else {
+                    repo.ensureContentSeeded()
+                }
                 val categories = repo.getAnimalCategories()
                 val animals = if (initialCategoryId != null) {
                     repo.getAnimalsByCategory(initialCategoryId)

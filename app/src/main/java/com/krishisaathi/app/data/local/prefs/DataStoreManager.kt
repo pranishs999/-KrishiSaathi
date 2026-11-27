@@ -35,6 +35,7 @@ class DataStoreManager(private val context: Context) : RegistrationPreferences {
         private val KEY_LAST_SYNC_TIMESTAMP = longPreferencesKey("last_sync_timestamp")
         private val KEY_REGISTRATION_COMPLETED = booleanPreferencesKey("registration_completed")
         private val KEY_TOLE_VILLAGE = stringPreferencesKey("farmer_tole_village")
+        private val KEY_REGISTRATION_SYNC_STATUS = stringPreferencesKey("registration_sync_status")
     }
 
     val lastSyncTimestamp: Flow<Long> = context.dataStore.data
@@ -44,6 +45,11 @@ class DataStoreManager(private val context: Context) : RegistrationPreferences {
     val toleVillage: Flow<String> = context.dataStore.data
         .catch { if (it is IOException) emit(emptyPreferences()) else throw it }
         .map { it[KEY_TOLE_VILLAGE] ?: "" }
+
+    /** Remote sync status of farmer registration: SYNCED, PENDING, or FAILED. */
+    val registrationSyncStatus: Flow<String> = context.dataStore.data
+        .catch { if (it is IOException) emit(emptyPreferences()) else throw it }
+        .map { it[KEY_REGISTRATION_SYNC_STATUS] ?: "PENDING" }
 
     override val isRegistrationCompleted: Flow<Boolean> = context.dataStore.data
         .catch { if (it is IOException) emit(emptyPreferences()) else throw it }
@@ -55,6 +61,10 @@ class DataStoreManager(private val context: Context) : RegistrationPreferences {
 
     suspend fun setToleVillage(tole: String) {
         context.dataStore.edit { it[KEY_TOLE_VILLAGE] = tole.trim() }
+    }
+
+    suspend fun setRegistrationSyncStatus(status: String) {
+        context.dataStore.edit { it[KEY_REGISTRATION_SYNC_STATUS] = status }
     }
 
     override suspend fun setRegistrationCompleted(completed: Boolean) {

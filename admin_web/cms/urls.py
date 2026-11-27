@@ -16,4 +16,5 @@ urlpatterns = [
     path("livestock/<str:animal_id>/transition/", views.livestock_transition, name="livestock_transition"),
     path("media/", views.media_library, name="media_library"),
     path("helpline/", views.helpline_list, name="helpline_list"),
+    path("farmers/", views.farmers_list, name="farmers_list"),
 ]

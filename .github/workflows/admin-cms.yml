@@ -1,0 +1,31 @@
+name: Admin CMS checks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "admin_web/**"
+      - ".github/workflows/admin-cms.yml"
+  pull_request:
+    paths:
+      - "admin_web/**"
+      - ".github/workflows/admin-cms.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: admin_web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run Django tests on SQLite
+        run: python manage.py test
+        env:
+          DJANGO_DEBUG: "false"
+          SECRET_KEY: ci-only-secret-key

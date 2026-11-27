@@ -38,9 +38,13 @@ interface BakaiyaCropRepository {
         name: String,
         ward: Int,
         phone: String,
-        municipality: String = BakaiyaMunicipality.DEFAULT_NAME
+        municipality: String = BakaiyaMunicipality.DEFAULT_NAME,
+        toleVillage: String = "",
+        consentStatus: Boolean = false
     ): Result<Unit>
     suspend fun clearFarmerRegistration(): Result<Unit>
+    /** Retries uploading a pending registration to Supabase. */
+    suspend fun retryPendingRegistrationSync(): Result<Unit>
     suspend fun markVideoDownloaded(videoId: String, localPath: String, sizeBytes: Long): Result<Unit>
     suspend fun deleteDownloadedVideo(videoId: String): Result<Unit>
     suspend fun syncRemoteContent(): Result<Unit>

@@ -4,6 +4,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.utils import timezone
 from .constants import ALLOWED_TRANSITIONS, ROLE_PERMISSIONS
 from .models import ContentAuditLog
+from .publication import mirror_published_entry
 
 
 def get_user_role(user) -> str:
@@ -93,6 +94,7 @@ def transition_entry_status(
         entry.is_published = False
 
     entry.save()
+    mirror_published_entry(entry, target_type)
 
     ContentAuditLog.objects.create(
         actor=actor,

@@ -28,6 +28,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -78,13 +80,9 @@ fun RegistrationScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     var wardMenuExpanded by remember { mutableStateOf(false) }
-    var toleVillage by rememberSaveable { mutableStateOf("") }
 
     LaunchedEffect(state.isCompleted) {
         if (state.isCompleted) {
-            if (toleVillage.isNotBlank()) {
-                dataStoreManager?.setToleVillage(toleVillage)
-            }
             onRegistrationComplete()
         }
     }
@@ -318,10 +316,10 @@ fun RegistrationScreen(
                     }
                 }
 
-                // 5. Optional Tole / Village for Farmer Profile
+                // 5. Village / Locality (टोल / गाउँ)
                 OutlinedTextField(
-                    value = toleVillage,
-                    onValueChange = { toleVillage = it },
+                    value = state.toleVillage,
+                    onValueChange = viewModel::onToleVillageChanged,
                     label = { Text("टोल / गाउँ (ऐच्छिक)", color = DeepCharcoal) },
                     placeholder = { Text("उदा: हात्तीसुँडे", color = PlaceholderText) },
                     singleLine = true,
@@ -330,6 +328,38 @@ fun RegistrationScreen(
                     colors = fieldColors,
                     modifier = Modifier.fillMaxWidth()
                 )
+
+                // 6. Consent Checkbox
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            checked = state.consentGiven,
+                            onCheckedChange = viewModel::onConsentChanged,
+                            colors = CheckboxDefaults.colors(
+                                checkedColor = ForestGreen,
+                                uncheckedColor = MutedGreenGrey,
+                                checkmarkColor = NaturalIvory
+                            )
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "मेरो नाम, वडा, टोल र मोबाइल नम्बर बकैया गाउँपालिकाको कृषि सेवा समन्वयका लागि सुरक्षित गर्न सहमत छु।",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = DeepCharcoal
+                        )
+                    }
+                    state.consentError?.let { err ->
+                        Text(
+                            text = err,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = ErrorMaroon,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(4.dp))
 

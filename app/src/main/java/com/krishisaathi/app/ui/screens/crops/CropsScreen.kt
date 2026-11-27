@@ -25,6 +25,8 @@ import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Terrain
 import androidx.compose.material.icons.outlined.Verified
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -201,10 +203,24 @@ fun CropsScreen(
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        text = "कृपया अर्को नाम वा वर्ग छनोट गरी पुनः प्रयास गर्नुहोस्।",
+                        text = if (state.searchQuery.isBlank()) {
+                            "स्थानीय डेटा खाली छ। कृपया इन्टरनेट जडान गरी Supabase बाट सिंक गर्नुहोस्।"
+                        } else {
+                            "कृपया अर्को नाम वा वर्ग छनोट गरी पुनः प्रयास गर्नुहोस्।"
+                        },
                         style = MaterialTheme.typography.bodyMedium,
                         color = MutedGreenGrey
                     )
+                    if (state.searchQuery.isBlank()) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Button(
+                            onClick = viewModel::refresh,
+                            colors = ButtonDefaults.buttonColors(containerColor = ForestGreen),
+                            shape = RoundedCornerShape(24.dp)
+                        ) {
+                            Text("Supabase बाट सिंक गर्नुहोस्", color = NaturalIvory)
+                        }
+                    }
                 }
             }
         } else {

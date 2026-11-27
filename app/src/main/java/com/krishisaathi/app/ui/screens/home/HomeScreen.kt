@@ -28,6 +28,8 @@ import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Eco
 import androidx.compose.material.icons.outlined.Pets
 import androidx.compose.material.icons.outlined.PlayCircle
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -54,11 +56,6 @@ import com.krishisaathi.app.ui.theme.LightGreen
 import com.krishisaathi.app.ui.theme.MutedGreenGrey
 import com.krishisaathi.app.ui.theme.NaturalIvory
 import com.krishisaathi.app.ui.theme.SoftSage
-
-private const val HERO_CROP_IMAGE_URL =
-    "https://upload.wikimedia.org/wikipedia/commons/6/6e/Rice_Fields_in_Jamuna%2C_Nepal.jpg"
-private const val HERO_LIVESTOCK_IMAGE_URL =
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Goat_in_Nepal_01.JPG/640px-Goat_in_Nepal_01.JPG"
 
 @Composable
 fun HomeScreen(
@@ -118,8 +115,12 @@ fun HomeScreen(
         ) {
             PrimaryHeroFeatureCard(
                 titleNe = "बाली व्यवस्थापन",
-                subtitleNe = "${state.featuredCrops.size.coerceAtLeast(8)} बाली प्रविधि",
-                imageUrl = HERO_CROP_IMAGE_URL,
+                subtitleNe = if (state.totalCropsCount > 0) {
+                    "${state.totalCropsCount} बाली प्रविधि (सिंक उपलब्ध)"
+                } else {
+                    "Supabase बाट सिंक गर्नुहोस्"
+                },
+                imageUrl = state.heroCropImageUrl,
                 fallbackIcon = Icons.Outlined.Agriculture,
                 onClick = { onNavigateToCrops(null) },
                 modifier = Modifier
@@ -129,14 +130,46 @@ fun HomeScreen(
 
             PrimaryHeroFeatureCard(
                 titleNe = "पशुपालन तथा माछापालन",
-                subtitleNe = "गाई, भैँसी, बाख्रा, माछा",
-                imageUrl = HERO_LIVESTOCK_IMAGE_URL,
+                subtitleNe = state.livestockSubtitleNe.ifBlank {
+                    if (state.totalAnimalsCount > 0) {
+                        "${state.totalAnimalsCount} पशु तथा मत्स्य विवरण"
+                    } else {
+                        "Supabase बाट सिंक गर्नुहोस्"
+                    }
+                },
+                imageUrl = state.heroLivestockImageUrl,
                 fallbackIcon = Icons.Outlined.Pets,
                 onClick = onNavigateToLivestock,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
             )
+        }
+
+        if (state.syncErrorNe != null && state.totalCropsCount == 0 && state.totalAnimalsCount == 0) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = SoftSage)
+            ) {
+                Column(
+                    modifier = Modifier.padding(14.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = state.syncErrorNe ?: "",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = DeepCharcoal
+                    )
+                    Button(
+                        onClick = viewModel::refresh,
+                        colors = ButtonDefaults.buttonColors(containerColor = ForestGreen),
+                        shape = RoundedCornerShape(24.dp)
+                    ) {
+                        Text("अहिले सिंक गर्नुहोस्", color = NaturalIvory)
+                    }
+                }
+            }
         }
 
         // FOUR PRESERVED MAIN SECTIONS BELOW
@@ -176,7 +209,7 @@ fun HomeScreen(
 private fun PrimaryHeroFeatureCard(
     titleNe: String,
     subtitleNe: String,
-    imageUrl: String,
+    imageUrl: String?,
     fallbackIcon: ImageVector,
     onClick: () -> Unit,
     modifier: Modifier = Modifier

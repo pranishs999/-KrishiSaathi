@@ -160,6 +160,9 @@ def crop_edit(request, crop_id: str):
             crop.review_status = "needs_rereview"
             crop.is_published = False
         crop.save()
+        from .publication import mirror_published_entry
+
+        mirror_published_entry(crop, "crop")
         messages.success(request, f"Updated '{crop.name_en}'.")
         return redirect("cms:crops_list")
     return render(request, "cms/crop_form.html", {"crop": crop})
@@ -327,7 +330,7 @@ def helpline_list(request):
         if not has_cms_permission(request.user, "manage_helpline"):
             messages.error(request, "Super Admin permission required to modify helpline contacts.")
             return redirect("cms:helpline_list")
-        HelplineContactEntry.objects.create(
+        contact = HelplineContactEntry.objects.create(
             name_ne=request.POST.get("name_ne", "").strip(),
             designation_ne=request.POST.get("designation_ne", "").strip(),
             department_en=request.POST.get("department_en", "").strip(),
@@ -338,6 +341,9 @@ def helpline_list(request):
             is_verified=True,
             is_published=True,
         )
+        from .publication import mirror_helpline
+
+        mirror_helpline(contact)
         messages.success(request, "Verified helpline contact added.")
         return redirect("cms:helpline_list")
 
@@ -348,6 +354,28 @@ def helpline_list(request):
         {
             "contacts": contacts,
             "can_manage": has_cms_permission(request.user, "manage_helpline"),
+        },
+    )
+
+
+@cms_role_required()
+def farmers_list(request):
+    """Displays registered farmers synced from Android via Supabase PostgreSQL."""
+    from apps.accounts.models import FarmerProfile
+
+    farmers = []
+    db_error = None
+    try:
+        farmers = list(FarmerProfile.objects.all().order_by("-created_at"))
+    except Exception as exc:
+        db_error = f"Farmer directory unavailable on current database backend: {exc}"
+
+    return render(
+        request,
+        "cms/farmers_list.html",
+        {
+            "farmers": farmers,
+            "db_error": db_error,
         },
     )
 
