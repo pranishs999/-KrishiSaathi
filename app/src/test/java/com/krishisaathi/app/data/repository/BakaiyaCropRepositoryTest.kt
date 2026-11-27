@@ -17,6 +17,7 @@ import com.krishisaathi.app.data.local.CropVarietyRequirementEntity
 import com.krishisaathi.app.data.local.EducationalVideoEntity
 import com.krishisaathi.app.data.local.FarmerRegistrationEntity
 import com.krishisaathi.app.data.local.HelplineContactEntity
+import com.krishisaathi.app.data.remote.AppSyncController
 import com.krishisaathi.app.data.remote.RegistrationUploadResult
 import com.krishisaathi.app.data.remote.RemoteContentSyncClient
 import com.krishisaathi.app.data.remote.RemoteSyncBundle
@@ -520,6 +521,28 @@ class BakaiyaCropRepositoryTest {
         assertEquals(RegistrationSyncStatus.FAILED, repository.getFarmerRegistration().first()?.syncStatus)
     }
 
+    @Test
+    fun appSyncControllerRefreshesContentAndIncrementsGeneration() = runBlocking {
+        val fakeDao = FakeBakaiyaCropDao()
+        val repository = BakaiyaCropRepositoryImpl(
+            fakeDao,
+            testDispatchers,
+            remoteClient = fakeSyncClient()
+        )
+        val controller = AppSyncController(repository = repository, dataStoreManager = null)
+
+        assertEquals(0L, controller.syncGeneration.value)
+        val firstResult = controller.refreshNow(force = false)
+        assertTrue(firstResult.isSuccess)
+        assertEquals(1L, controller.syncGeneration.value)
+        assertEquals(4, repository.getCrops().first().size)
+
+        // Forced pull-to-refresh runs immediately bypassing throttle
+        val forcedResult = controller.refreshNow(force = true)
+        assertTrue(forcedResult.isSuccess)
+        assertEquals(2L, controller.syncGeneration.value)
+    }
+
     private class FakeBakaiyaCropDao : BakaiyaCropDao {
         private val categories = MutableStateFlow<List<CategoryEntity>>(emptyList())
         private val crops = MutableStateFlow<List<BakaiyaCropEntity>>(emptyList())
@@ -614,6 +637,8 @@ class BakaiyaCropRepositoryTest {
 
         override fun getVideosForCrop(cropId: String): Flow<List<EducationalVideoEntity>> =
             videos.map { list -> list.filter { it.cropId == cropId } }
+
+        override fun getAllVideos(): Flow<List<EducationalVideoEntity>> = videos
 
         override fun getVideosForTargetSync(cropId: String): List<EducationalVideoEntity> =
             videos.value.filter { it.cropId == cropId }

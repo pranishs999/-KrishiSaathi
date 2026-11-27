@@ -17,7 +17,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BrokenImage
 import androidx.compose.material.icons.outlined.Pets
@@ -45,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.krishisaathi.app.domain.model.Animal
+import com.krishisaathi.app.ui.components.KrishiPullToRefreshBox
 import com.krishisaathi.app.ui.screens.home.CropThumbnailImage
 import com.krishisaathi.app.ui.theme.DeepCharcoal
 import com.krishisaathi.app.ui.theme.ForestGreen
@@ -71,12 +74,18 @@ fun LivestockScreen(
         state.animals.filter { it.categoryId == activeCategoryId }
     }
 
-    Column(
+    KrishiPullToRefreshBox(
+        isRefreshing = state.isRefreshing,
+        onRefresh = viewModel::refresh,
         modifier = modifier
             .fillMaxSize()
             .background(NaturalIvory)
-            .padding(horizontal = 16.dp)
     ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+        ) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
@@ -169,7 +178,9 @@ fun LivestockScreen(
 
         if (filteredAnimals.isEmpty()) {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -206,6 +217,7 @@ fun LivestockScreen(
                 }
                 item { Spacer(modifier = Modifier.height(16.dp)) }
             }
+        }
         }
     }
 }

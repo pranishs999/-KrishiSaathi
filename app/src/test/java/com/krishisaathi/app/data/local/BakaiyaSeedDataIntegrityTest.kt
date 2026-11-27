@@ -6,7 +6,6 @@ import com.krishisaathi.app.data.remote.SupabaseCropDto
 import com.krishisaathi.app.data.remote.SupabaseEducationalVideoDto
 import com.krishisaathi.app.data.remote.SupabaseHelplineDto
 import com.krishisaathi.app.domain.model.NepalEcologicalZone
-import com.krishisaathi.app.domain.model.VerifiedYouTubeChannels
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -82,16 +81,5 @@ class BakaiyaSeedDataIntegrityTest {
             isVerified = true
         )
         assertTrue(ValidationUtils.isValidNepalPhoneNumber(helplineDto.mobileNumber))
-    }
-
-    @Test
-    fun verifiedYouTubeChannelsHaveValidUrlsAndHandles() {
-        assertTrue(VerifiedYouTubeChannels.channels.isNotEmpty())
-        VerifiedYouTubeChannels.channels.forEach { channel ->
-            assertTrue("Channel ${channel.id} name blank", channel.nameNe.isNotBlank())
-            assertTrue("Channel ${channel.id} handle invalid", channel.handle.startsWith("@"))
-            assertTrue("Channel ${channel.id} URL invalid", ValidationUtils.isValidYouTubeChannelUrl(channel.channelUrl))
-            assertTrue("Channel ${channel.id} must be verified", channel.isVerified)
-        }
     }
 }

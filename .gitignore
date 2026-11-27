@@ -20,5 +20,11 @@ ignore.md
 app/build
 venv
 .agents
-.antigravity-skill-manager
 .antigravity
+*.jks
+*.keystore
+keystore.properties-skill-manager
+.antigravity
+*.jks
+*.keystore
+keystore.properties

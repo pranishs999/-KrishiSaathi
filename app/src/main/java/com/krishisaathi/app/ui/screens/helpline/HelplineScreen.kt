@@ -15,7 +15,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.outlined.SupportAgent
@@ -31,6 +33,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -38,6 +44,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.krishisaathi.app.di.AppContainer
 import com.krishisaathi.app.domain.model.HelplineContact
+import com.krishisaathi.app.ui.components.KrishiPullToRefreshBox
+import kotlinx.coroutines.launch
 import com.krishisaathi.app.ui.theme.DeepCharcoal
 import com.krishisaathi.app.ui.theme.ForestGreen
 import com.krishisaathi.app.ui.theme.LightGreen
@@ -54,17 +62,34 @@ fun HelplineScreen(
     val contacts by appContainer.bakaiyaCropRepository
         .getHelplineContacts()
         .collectAsState(initial = emptyList())
+    var isRefreshing by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         appContainer.bakaiyaCropRepository.ensureContentSeeded()
     }
 
-    Column(
+    KrishiPullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = {
+            scope.launch {
+                isRefreshing = true
+                try {
+                    appContainer.appSyncController.refreshNow(force = true)
+                } finally {
+                    isRefreshing = false
+                }
+            }
+        },
         modifier = modifier
             .fillMaxSize()
             .background(NaturalIvory)
-            .padding(horizontal = 16.dp)
     ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+        ) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -110,11 +135,17 @@ fun HelplineScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         if (contacts.isEmpty()) {
-            Text(
-                text = "सम्पर्क विवरण लोड हुँदैछ...",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MutedGreenGrey
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Text(
+                    text = "सम्पर्क विवरण लोड हुँदैछ वा उपलब्ध छैन। तल तानेर पुनः सिंक गर्नुहोस्।",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MutedGreenGrey
+                )
+            }
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(contacts, key = { it.id }) { contact ->
@@ -122,6 +153,7 @@ fun HelplineScreen(
                 }
                 item { Spacer(modifier = Modifier.height(16.dp)) }
             }
+        }
         }
     }
 }

@@ -7,6 +7,16 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+val localProps = Properties().apply {
+    val file = project.rootProject.file("local.properties")
+    if (file.exists()) {
+        file.inputStream().use(::load)
+    }
+}
+
+fun configProp(key: String): String =
+    (localProps.getProperty(key) ?: System.getenv(key) ?: "").trim()
+
 android {
     namespace = "com.krishisaathi.app"
     compileSdk {
@@ -18,28 +28,48 @@ android {
         minSdk = 26
         targetSdk = 37
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        val properties = Properties()
-        val localPropertiesFile = project.rootProject.file("local.properties")
-        if (localPropertiesFile.exists()) {
-            localPropertiesFile.inputStream().use { stream ->
-                properties.load(stream)
-            }
-        }
-        val supabaseUrl = properties.getProperty("SUPABASE_URL") ?: ""
-        val supabaseAnonKey = properties.getProperty("SUPABASE_ANON_KEY") ?: ""
+        val supabaseUrl = configProp("SUPABASE_URL")
+        val supabaseAnonKey = configProp("SUPABASE_ANON_KEY")
 
         buildConfigField("String", "SUPABASE_URL", "\"$supabaseUrl\"")
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"$supabaseAnonKey\"")
     }
 
+    signingConfigs {
+        val storePath = configProp("RELEASE_STORE_FILE")
+        val storePasswordValue = configProp("RELEASE_STORE_PASSWORD")
+        val keyAliasValue = configProp("RELEASE_KEY_ALIAS")
+        val keyPasswordValue = configProp("RELEASE_KEY_PASSWORD")
+
+        if (storePath.isNotEmpty() &&
+            storePasswordValue.isNotEmpty() &&
+            keyAliasValue.isNotEmpty() &&
+            keyPasswordValue.isNotEmpty()
+        ) {
+            val resolvedStoreFile = file(storePath)
+            if (resolvedStoreFile.exists()) {
+                create("release") {
+                    storeFile = resolvedStoreFile
+                    storePassword = storePasswordValue
+                    keyAlias = keyAliasValue
+                    keyPassword = keyPasswordValue
+                    enableV1Signing = true
+                    enableV2Signing = true
+                }
+            }
+        }
+    }
+
     buildTypes {
         release {
+            isDebuggable = false
             isMinifyEnabled = true
             isShrinkResources = true
+            signingConfig = signingConfigs.findByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

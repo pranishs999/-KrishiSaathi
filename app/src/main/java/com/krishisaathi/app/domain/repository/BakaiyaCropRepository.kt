@@ -27,6 +27,7 @@ interface BakaiyaCropRepository {
     fun getCropsByCategory(categoryId: String): Flow<List<BakaiyaCrop>>
     fun searchCrops(query: String): Flow<List<BakaiyaCrop>>
     fun getCropImages(cropId: String): Flow<List<CropImage>>
+    fun getAllVideos(): Flow<List<EducationalVideo>>
     fun getCropVideos(cropId: String): Flow<List<EducationalVideo>>
     fun getVideosForTopic(cropId: String, topicId: Int): Flow<List<EducationalVideo>>
     fun getDownloadedVideos(): Flow<List<EducationalVideo>>

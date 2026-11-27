@@ -102,6 +102,12 @@ class BakaiyaCropRepositoryImpl(
         }.flowOn(dispatchers.io)
     }
 
+    override fun getAllVideos(): Flow<List<EducationalVideo>> {
+        return dao.getAllVideos().map { list ->
+            list.map { it.toSyncedDomain() }
+        }.flowOn(dispatchers.io)
+    }
+
     override fun getCropVideos(cropId: String): Flow<List<EducationalVideo>> {
         return dao.getVideosForCrop(cropId).map { list ->
             list.map { it.toSyncedDomain() }

@@ -1,5 +1,8 @@
 package com.krishisaathi.app.ui.navigation
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.Network
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,16 +21,23 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.krishisaathi.app.data.remote.AppSyncController
 import com.krishisaathi.app.di.AppContainer
 import com.krishisaathi.app.ui.theme.DeepCharcoal
 import com.krishisaathi.app.ui.theme.DividerSage
@@ -35,6 +45,9 @@ import com.krishisaathi.app.ui.theme.ForestGreen
 import com.krishisaathi.app.ui.theme.LightGreen
 import com.krishisaathi.app.ui.theme.MutedGreenGrey
 import com.krishisaathi.app.ui.theme.NaturalIvory
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
 /**
  * Primary scaffold featuring:
@@ -52,10 +65,54 @@ fun MainScaffold(
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val syncScope = rememberCoroutineScope()
 
-    // Retry any pending offline farmer registration automatically when MainScaffold opens
+    // App-wide auto refresh: on foreground resume, on network reconnect, and periodically while open.
     LaunchedEffect(Unit) {
-        appContainer.bakaiyaCropRepository.retryPendingRegistrationSync()
+        appContainer.appSyncController.refreshNow(force = false)
+        while (isActive) {
+            delay(AppSyncController.FOREGROUND_AUTO_REFRESH_INTERVAL_MS)
+            appContainer.appSyncController.refreshNow(force = false)
+        }
+    }
+
+    DisposableEffect(lifecycleOwner, context) {
+        val lifecycleObserver = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_START) {
+                syncScope.launch {
+                    appContainer.appSyncController.refreshNow(force = false)
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
+
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+        val networkCallback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                syncScope.launch {
+                    appContainer.appSyncController.refreshNow(force = false)
+                }
+            }
+        }
+        val callbackRegistered = try {
+            connectivityManager?.registerDefaultNetworkCallback(networkCallback)
+            connectivityManager != null
+        } catch (_: Exception) {
+            false
+        }
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(lifecycleObserver)
+            if (callbackRegistered) {
+                try {
+                    connectivityManager?.unregisterNetworkCallback(networkCallback)
+                } catch (_: Exception) {
+                }
+            }
+        }
     }
 
     val showChromeBars = currentRoute == BottomNavItem.Home.route ||

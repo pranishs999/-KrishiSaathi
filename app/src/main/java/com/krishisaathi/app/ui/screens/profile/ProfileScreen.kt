@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import com.krishisaathi.app.data.remote.RemoteFarmerProfileSnapshot
 import com.krishisaathi.app.di.AppContainer
 import com.krishisaathi.app.domain.model.RegistrationSyncStatus
+import com.krishisaathi.app.ui.components.KrishiPullToRefreshBox
 import com.krishisaathi.app.ui.theme.DeepCharcoal
 import com.krishisaathi.app.ui.theme.DividerSage
 import com.krishisaathi.app.ui.theme.ForestGreen
@@ -74,6 +75,7 @@ fun ProfileScreen(
     val storedTole by appContainer.dataStoreManager.toleVillage.collectAsState(initial = "")
     var remoteSnapshot by remember { mutableStateOf<RemoteFarmerProfileSnapshot?>(null) }
     var isRetryingSync by remember { mutableStateOf(false) }
+    var isPullRefreshing by remember { mutableStateOf(false) }
     var syncRetryFeedback by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
@@ -99,14 +101,34 @@ fun ProfileScreen(
         localRegistration?.syncStatus ?: RegistrationSyncStatus.PENDING
     }
 
-    Column(
+    KrishiPullToRefreshBox(
+        isRefreshing = isPullRefreshing,
+        onRefresh = {
+            scope.launch {
+                isPullRefreshing = true
+                try {
+                    appContainer.appSyncController.refreshNow(force = true)
+                    val phone = localRegistration?.phoneNumber
+                    if (!phone.isNullOrBlank()) {
+                        remoteSnapshot =
+                            appContainer.remoteContentSyncClient.fetchFarmerProfileByPhone(phone)
+                    }
+                } finally {
+                    isPullRefreshing = false
+                }
+            }
+        },
         modifier = modifier
             .fillMaxSize()
             .background(NaturalIvory)
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 imageVector = Icons.Outlined.Person,
@@ -317,6 +339,7 @@ fun ProfileScreen(
                     color = DeepCharcoal
                 )
             }
+        }
         }
     }
 }

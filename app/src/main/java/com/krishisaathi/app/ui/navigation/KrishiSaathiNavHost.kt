@@ -3,7 +3,13 @@ package com.krishisaathi.app.ui.navigation
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.launch
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -278,6 +284,7 @@ fun KrishiSaathiNavHost(
 
         composable("youtube_channels") {
             YouTubeChannelsScreen(
+                appContainer = appContainer,
                 onBackClick = { navController.popBackStack() }
             )
         }

@@ -6,6 +6,7 @@ import com.krishisaathi.app.core.common.DispatcherProvider
 import com.krishisaathi.app.data.local.KrishiSaathiDatabase
 import com.krishisaathi.app.data.local.prefs.DataStoreManager
 import com.krishisaathi.app.data.local.prefs.RegistrationPreferences
+import com.krishisaathi.app.data.remote.AppSyncController
 import com.krishisaathi.app.data.remote.RemoteContentSyncClient
 import com.krishisaathi.app.data.remote.SupabaseClientProvider
 import com.krishisaathi.app.data.repository.BakaiyaCropRepositoryImpl
@@ -25,6 +26,7 @@ interface AppContainer {
     val supabaseClient: SupabaseClient?
     val remoteContentSyncClient: RemoteContentSyncClient
     val bakaiyaCropRepository: BakaiyaCropRepository
+    val appSyncController: AppSyncController
     val videoDownloadManager: VideoDownloadManager
 }
 
@@ -59,6 +61,13 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
             dispatchers = dispatchers,
             database = database,
             remoteClient = remoteContentSyncClient
+        )
+    }
+
+    override val appSyncController: AppSyncController by lazy {
+        AppSyncController(
+            repository = bakaiyaCropRepository,
+            dataStoreManager = dataStoreManager
         )
     }
 

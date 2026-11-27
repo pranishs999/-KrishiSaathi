@@ -46,6 +46,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
+import com.krishisaathi.app.ui.components.KrishiPullToRefreshBox
 import com.krishisaathi.app.ui.theme.DeepCharcoal
 import com.krishisaathi.app.ui.theme.DividerSage
 import com.krishisaathi.app.ui.theme.ForestGreen
@@ -99,28 +100,34 @@ fun AnimalDetailScreen(
             }
         }
     ) { innerPadding ->
-        val animal = state.animal
-        if (animal == null) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = if (state.isLoading) "लोड हुँदैछ..." else "विवरण फेला परेन।",
-                    color = MutedGreenGrey
-                )
-            }
-        } else {
-            Column(
-                modifier = modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
+        KrishiPullToRefreshBox(
+            isRefreshing = state.isRefreshing,
+            onRefresh = viewModel::refresh,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            val animal = state.animal
+            if (animal == null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState()),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = if (state.isLoading) "लोड हुँदैछ..." else "विवरण फेला परेन।",
+                        color = MutedGreenGrey
+                    )
+                }
+            } else {
+                Column(
+                    modifier = modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                 Spacer(modifier = Modifier.height(4.dp))
 
                 if (animal.thumbnailUrl != null) {
@@ -397,6 +404,7 @@ fun AnimalDetailScreen(
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
+            }
             }
         }
     }

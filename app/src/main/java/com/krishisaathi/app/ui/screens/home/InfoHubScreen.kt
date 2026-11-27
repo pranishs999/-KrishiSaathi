@@ -1,6 +1,5 @@
 package com.krishisaathi.app.ui.screens.home
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -27,19 +26,26 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.krishisaathi.app.di.AppContainer
+import com.krishisaathi.app.domain.model.Animal
+import com.krishisaathi.app.ui.components.KrishiPullToRefreshBox
 import com.krishisaathi.app.ui.theme.DeepCharcoal
 import com.krishisaathi.app.ui.theme.DividerSage
 import com.krishisaathi.app.ui.theme.ForestGreen
 import com.krishisaathi.app.ui.theme.LightGreen
 import com.krishisaathi.app.ui.theme.MutedGreenGrey
 import com.krishisaathi.app.ui.theme.NaturalIvory
-import com.krishisaathi.app.ui.theme.SoftSage
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,6 +58,28 @@ fun InfoHubScreen(
     modifier: Modifier = Modifier
 ) {
     val crops by appContainer.bakaiyaCropRepository.getCrops().collectAsState(initial = emptyList())
+    val contacts by appContainer.bakaiyaCropRepository.getHelplineContacts().collectAsState(initial = emptyList())
+    val syncGeneration by appContainer.appSyncController.syncGeneration.collectAsState()
+    var animals by remember { mutableStateOf<List<Animal>>(emptyList()) }
+    var isRefreshing by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(syncGeneration) {
+        appContainer.bakaiyaCropRepository.ensureContentSeeded()
+        animals = appContainer.bakaiyaCropRepository.getAllAnimals()
+    }
+
+    val refreshAction: () -> Unit = {
+        scope.launch {
+            isRefreshing = true
+            try {
+                appContainer.appSyncController.refreshNow(force = true)
+                animals = appContainer.bakaiyaCropRepository.getAllAnimals()
+            } finally {
+                isRefreshing = false
+            }
+        }
+    }
 
     val titleNe = when (sectionType) {
         "documents" -> "सरकारी कृषि दस्तावेज"
@@ -88,97 +116,131 @@ fun InfoHubScreen(
             }
         }
     ) { innerPadding ->
-        Column(
+        KrishiPullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = refreshAction,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            when (sectionType) {
-                "documents" -> {
-                    InfoItemCard(
-                        title = "नेपाल कृषि अनुसन्धान परिषद् (NARC)",
-                        body = "बाली जात सिफारिस, धान/मकै/तरकारी खेती प्रविधि तथा बाली संरक्षण मार्गनिर्देशन (narc.gov.np) यस एपमा समावेश छ।"
-                    )
-                    InfoItemCard(
-                        title = "कृषि सूचना तथा प्रशिक्षण केन्द्र (AITC Nepal)",
-                        body = "कृषि तथा पशुपन्छी विकास मन्त्रालय अन्तर्गत आधिकारिक कृषि डायरी र किसान शैक्षिक सामग्री।"
-                    )
-                    InfoItemCard(
-                        title = "पशु सेवा विभाग (DLS) तथा भेटेरिनरी अस्पताल मकवानपुर",
-                        body = "पशुपालन खोर, दाना व्यवस्थापन र पशु रोग सचेतना मार्गनिर्देशनको आधिकारिक स्रोत।"
-                    )
-                }
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                when (sectionType) {
+                    "documents" -> {
+                        val cropSources = crops
+                            .filter { it.sourceReference.isNotBlank() }
+                            .groupBy { it.sourceReference }
+                        val animalSources = animals
+                            .filter { it.sourceReference.isNotBlank() }
+                            .groupBy { it.sourceReference }
 
-                "subsidies" -> {
-                    InfoItemCard(
-                        title = "बकैया गाउँपालिका कृषि तथा पशु सेवा शाखा",
-                        body = "गाउँपालिकास्तरीय बीउ वितरण, अनुदान कार्यक्रम, माटो परीक्षण तथा पशु खोप अभियानका अद्यावधिक विवरणका लागि बकैया कृषि शाखामा सिधा सम्पर्क गर्नुहोस्।"
-                    )
-                    InfoItemCard(
-                        title = "आधिकारिक पोर्टल तथा कार्यालय",
-                        body = "कार्यालय: बकैया-३, हात्तीसुँडे, मकवानपुर (bakaiyakrishi.gov.np)। कृषि प्राविधिक सेवाका लागि किसान हेल्पलाइन प्रयोग गर्नुहोस्।"
-                    )
-                    Button(
-                        onClick = onOpenHelpline,
-                        shape = RoundedCornerShape(50),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = ForestGreen,
-                            contentColor = NaturalIvory
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp)
-                    ) {
-                        Text("किसान हेल्पलाइनमा सम्पर्क गर्नुहोस्", fontWeight = FontWeight.Bold)
-                    }
-                }
-
-                else -> {
-                    InfoItemCard(
-                        title = "मौसमी खेती समय सल्लाह (NARC आधारित)",
-                        body = "बकैया गाउँपालिकाको उचाइ र हावापानी अनुसार प्रमुख बाली लगाउने समय जानकारी तल हेर्नुहोस्।"
-                    )
-                    crops.filter { !it.plantingSeason.isNullOrBlank() }.take(6).forEach { crop ->
-                        Card(
-                            onClick = { onOpenCropDetail(crop.id) },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(24.dp),
-                            colors = CardDefaults.cardColors(containerColor = LightGreen),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                        ) {
-                            Column(modifier = Modifier.padding(14.dp)) {
-                                Text(
-                                    text = "${crop.nameNe} (${crop.nameEn})",
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = ForestGreen
+                        if (cropSources.isEmpty() && animalSources.isEmpty()) {
+                            EmptySupabasePrompt(onSync = refreshAction)
+                        } else {
+                            cropSources.forEach { (source, linkedCrops) ->
+                                InfoItemCard(
+                                    title = source,
+                                    body = "बालीहरू: ${linkedCrops.joinToString(", ") { it.nameNe }}"
                                 )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = crop.plantingSeason ?: "",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = DeepCharcoal
+                            }
+                            animalSources.forEach { (source, linkedAnimals) ->
+                                InfoItemCard(
+                                    title = source,
+                                    body = "पशुपालन: ${linkedAnimals.joinToString(", ") { it.nameNe }}"
                                 )
                             }
                         }
                     }
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(24.dp),
-                        colors = CardDefaults.cardColors(containerColor = SoftSage),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                    ) {
-                        Text(
-                            text = "थप गाउँपालिका सूचना र अद्यावधिक समाचारका लागि बकैया कृषि शाखामा सम्पर्क गर्नुहोस्।",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MutedGreenGrey,
-                            modifier = Modifier.padding(14.dp)
-                        )
+
+                    "subsidies" -> {
+                        if (contacts.isEmpty()) {
+                            EmptySupabasePrompt(onSync = refreshAction)
+                        } else {
+                            contacts.forEach { contact ->
+                                InfoItemCard(
+                                    title = "${contact.nameNe} (${contact.wardNe})",
+                                    body = "${contact.designationNe} • सम्पर्क: ${contact.mobileNumber}" +
+                                        (contact.email?.let { " • $it" } ?: "")
+                                )
+                            }
+                            Button(
+                                onClick = onOpenHelpline,
+                                shape = RoundedCornerShape(50),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = ForestGreen,
+                                    contentColor = NaturalIvory
+                                ),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(48.dp)
+                            ) {
+                                Text("किसान हेल्पलाइनमा सम्पर्क गर्नुहोस्", fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+
+                    else -> {
+                        val seasonalCrops = crops.filter { !it.plantingSeason.isNullOrBlank() }
+                        if (seasonalCrops.isEmpty()) {
+                            EmptySupabasePrompt(onSync = refreshAction)
+                        } else {
+                            seasonalCrops.forEach { crop ->
+                                Card(
+                                    onClick = { onOpenCropDetail(crop.id) },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(24.dp),
+                                    colors = CardDefaults.cardColors(containerColor = LightGreen),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                                ) {
+                                    Column(modifier = Modifier.padding(14.dp)) {
+                                        Text(
+                                            text = "${crop.nameNe} (${crop.nameEn})",
+                                            style = MaterialTheme.typography.titleSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            color = ForestGreen
+                                        )
+                                        Spacer(modifier = Modifier.height(2.dp))
+                                        Text(
+                                            text = crop.plantingSeason ?: "",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = DeepCharcoal
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptySupabasePrompt(onSync: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = LightGreen),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(
+                text = "Supabase बाट डेटा सिंक हुन बाँकी छ।",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MutedGreenGrey
+            )
+            Button(
+                onClick = onSync,
+                shape = RoundedCornerShape(24.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = ForestGreen)
+            ) {
+                Text("Supabase बाट सिंक गर्नुहोस्", color = NaturalIvory)
             }
         }
     }

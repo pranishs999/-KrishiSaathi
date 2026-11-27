@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Clear
@@ -45,6 +46,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.krishisaathi.app.domain.model.BakaiyaCrop
+import com.krishisaathi.app.ui.components.KrishiPullToRefreshBox
 import com.krishisaathi.app.ui.screens.home.CropThumbnailImage
 import com.krishisaathi.app.ui.theme.DeepCharcoal
 import com.krishisaathi.app.ui.theme.ForestGreen
@@ -63,13 +65,19 @@ fun CropsScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
 
-    Column(
+    KrishiPullToRefreshBox(
+        isRefreshing = state.isRefreshing,
+        onRefresh = viewModel::refresh,
         modifier = modifier
             .fillMaxSize()
             .background(NaturalIvory)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
         Column {
             Text(
                 text = "बालीहरू",
@@ -184,13 +192,19 @@ fun CropsScreen(
 
         // Crops List / Loading / Empty State
         if (state.isLoading && state.crops.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()),
+                contentAlignment = Alignment.Center
+            ) {
                 CircularProgressIndicator(color = ForestGreen)
             }
         } else if (state.crops.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
                     .padding(24.dp),
                 contentAlignment = Alignment.Center
             ) {
@@ -235,6 +249,7 @@ fun CropsScreen(
                     )
                 }
             }
+        }
         }
     }
 }

@@ -197,6 +197,7 @@ class RegistrationFlowTest {
         override fun getCropsByCategory(categoryId: String): Flow<List<BakaiyaCrop>> = MutableStateFlow(emptyList())
         override fun searchCrops(query: String): Flow<List<BakaiyaCrop>> = MutableStateFlow(emptyList())
         override fun getCropImages(cropId: String): Flow<List<CropImage>> = MutableStateFlow(emptyList())
+        override fun getAllVideos(): Flow<List<EducationalVideo>> = MutableStateFlow(emptyList())
         override fun getCropVideos(cropId: String): Flow<List<EducationalVideo>> = MutableStateFlow(emptyList())
         override fun getVideosForTopic(cropId: String, topicId: Int): Flow<List<EducationalVideo>> = MutableStateFlow(emptyList())
         override fun getDownloadedVideos(): Flow<List<EducationalVideo>> = MutableStateFlow(emptyList())

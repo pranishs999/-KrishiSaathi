@@ -90,6 +90,7 @@ import com.krishisaathi.app.domain.model.VideoTopic
 import com.krishisaathi.app.media.VideoDownloadState
 import com.krishisaathi.app.media.YouTubeLaunchResult
 import com.krishisaathi.app.media.YouTubeLauncher
+import com.krishisaathi.app.ui.components.KrishiPullToRefreshBox
 import com.krishisaathi.app.ui.screens.home.CropThumbnailImage
 import com.krishisaathi.app.ui.theme.DeepCharcoal
 import com.krishisaathi.app.ui.theme.DividerSage
@@ -146,39 +147,45 @@ fun CropDetailScreen(
             }
         }
     ) { innerPadding ->
-        if (state.isLoading && state.crop == null) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = ForestGreen)
-            }
-        } else if (state.crop == null) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "बालीको विवरण उपलब्ध छैन।",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MutedGreenGrey
-                )
-            }
-        } else {
-            val crop = state.crop!!
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .background(NaturalIvory)
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
+        KrishiPullToRefreshBox(
+            isRefreshing = state.isRefreshing,
+            onRefresh = viewModel::refresh,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            if (state.isLoading && state.crop == null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState()),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = ForestGreen)
+                }
+            } else if (state.crop == null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState()),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "बालीको विवरण उपलब्ध छैन।",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MutedGreenGrey
+                    )
+                }
+            } else {
+                val crop = state.crop!!
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(NaturalIvory)
+                        .verticalScroll(rememberScrollState())
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
                 // Header Photo & Section 1: बालीको परिचय (Introduction) + Source Badge
                 CropOverviewHeaderCard(crop = crop)
 
@@ -286,6 +293,7 @@ fun CropDetailScreen(
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
+            }
             }
         }
     }

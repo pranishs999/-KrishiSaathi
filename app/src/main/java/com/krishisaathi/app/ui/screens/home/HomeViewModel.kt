@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.krishisaathi.app.data.remote.AppSyncController
 import com.krishisaathi.app.di.AppContainer
 import com.krishisaathi.app.domain.model.Animal
 import com.krishisaathi.app.domain.model.AnimalCategory
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -30,6 +32,7 @@ data class HomeUiState(
     val livestockSubtitleNe: String = "",
     val farmerRegistration: FarmerRegistration? = null,
     val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
     val syncErrorNe: String? = null
 )
 
@@ -37,11 +40,13 @@ private data class LivestockHomeSummary(
     val categories: List<AnimalCategory> = emptyList(),
     val animals: List<Animal> = emptyList(),
     val isSyncing: Boolean = false,
+    val isUserRefreshing: Boolean = false,
     val syncErrorNe: String? = null
 )
 
 class HomeViewModel(
-    private val repository: BakaiyaCropRepository
+    private val repository: BakaiyaCropRepository,
+    private val appSyncController: AppSyncController? = null
 ) : ViewModel() {
 
     private val _livestockAndSync = MutableStateFlow(LivestockHomeSummary(isSyncing = true))
@@ -75,6 +80,7 @@ class HomeViewModel(
             livestockSubtitleNe = animalNamesSummary,
             farmerRegistration = farmer,
             isLoading = syncSummary.isSyncing,
+            isRefreshing = syncSummary.isUserRefreshing,
             syncErrorNe = syncSummary.syncErrorNe
         )
     }.stateIn(
@@ -84,22 +90,37 @@ class HomeViewModel(
     )
 
     init {
-        refresh()
+        syncFromRemote(force = false, showPullIndicator = false)
+        appSyncController?.let { controller ->
+            viewModelScope.launch {
+                controller.syncGeneration.drop(1).collect {
+                    reloadLivestockFromRoom()
+                }
+            }
+        }
     }
 
     fun refresh() {
+        syncFromRemote(force = true, showPullIndicator = true)
+    }
+
+    private fun syncFromRemote(force: Boolean, showPullIndicator: Boolean) {
         viewModelScope.launch {
-            // Emit whatever is already cached in Room first, then refresh from Supabase.
             val cachedCategories = repository.getAnimalCategories()
             val cachedAnimals = repository.getAllAnimals()
             _livestockAndSync.value = LivestockHomeSummary(
                 categories = cachedCategories,
                 animals = cachedAnimals,
-                isSyncing = true,
+                isSyncing = cachedAnimals.isEmpty(),
+                isUserRefreshing = showPullIndicator,
                 syncErrorNe = null
             )
 
-            val syncResult = repository.syncRemoteContent()
+            val syncResult = if (appSyncController != null) {
+                appSyncController.refreshNow(force = force)
+            } else {
+                repository.syncRemoteContent()
+            }
             val updatedCategories = repository.getAnimalCategories()
             val updatedAnimals = repository.getAllAnimals()
 
@@ -107,6 +128,7 @@ class HomeViewModel(
                 categories = updatedCategories,
                 animals = updatedAnimals,
                 isSyncing = false,
+                isUserRefreshing = false,
                 syncErrorNe = if (syncResult.isFailure && updatedAnimals.isEmpty()) {
                     "Supabase बाट डेटा सिंक हुन सकेन। कृपया इन्टरनेट जडान जाँच गरी पुनः प्रयास गर्नुहोस्।"
                 } else {
@@ -116,10 +138,22 @@ class HomeViewModel(
         }
     }
 
+    private suspend fun reloadLivestockFromRoom() {
+        val current = _livestockAndSync.value
+        _livestockAndSync.value = current.copy(
+            categories = repository.getAnimalCategories(),
+            animals = repository.getAllAnimals(),
+            syncErrorNe = null
+        )
+    }
+
     companion object {
         fun factory(appContainer: AppContainer): ViewModelProvider.Factory = viewModelFactory {
             initializer {
-                HomeViewModel(appContainer.bakaiyaCropRepository)
+                HomeViewModel(
+                    repository = appContainer.bakaiyaCropRepository,
+                    appSyncController = appContainer.appSyncController
+                )
             }
         }
     }

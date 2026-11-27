@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.krishisaathi.app.data.remote.AppSyncController
 import com.krishisaathi.app.di.AppContainer
 import com.krishisaathi.app.domain.model.BakaiyaCrop
 import com.krishisaathi.app.domain.model.CropImage
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 data class CropDetailUiState(
     val crop: BakaiyaCrop? = null,
@@ -29,19 +31,22 @@ data class CropDetailUiState(
     val downloadStates: Map<String, VideoDownloadState> = emptyMap(),
     val fullScreenImage: CropImage? = null,
     val launchErrorMessage: String? = null,
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val isRefreshing: Boolean = false
 )
 
 class CropDetailViewModel(
     private val cropId: String,
     private val repository: BakaiyaCropRepository,
-    private val downloadManager: VideoDownloadManager
+    private val downloadManager: VideoDownloadManager,
+    private val appSyncController: AppSyncController? = null
 ) : ViewModel() {
 
     private val _selectedTopicId = MutableStateFlow<Int?>(null)
     private val _selectedVarietyId = MutableStateFlow<String?>(null)
     private val _fullScreenImage = MutableStateFlow<CropImage?>(null)
     private val _launchError = MutableStateFlow<String?>(null)
+    private val _isRefreshing = MutableStateFlow(false)
 
     private data class CropContentTuple(
         val crop: BakaiyaCrop?,
@@ -49,6 +54,24 @@ class CropDetailViewModel(
         val images: List<CropImage>,
         val videos: List<EducationalVideo>,
         val downloadStates: Map<String, VideoDownloadState>
+    )
+
+    private val _uiSelectionTuple = combine(
+        _selectedVarietyId,
+        _selectedTopicId,
+        _fullScreenImage,
+        _launchError,
+        _isRefreshing
+    ) { selectedVarId, topicId, fullScreenImg, launchErr, refreshing ->
+        CropSelectionState(selectedVarId, topicId, fullScreenImg, launchErr, refreshing)
+    }
+
+    private data class CropSelectionState(
+        val selectedVarietyId: String?,
+        val selectedTopicId: Int?,
+        val fullScreenImage: CropImage?,
+        val launchErrorMessage: String?,
+        val isRefreshing: Boolean
     )
 
     val uiState: StateFlow<CropDetailUiState> = combine(
@@ -61,33 +84,46 @@ class CropDetailViewModel(
         ) { crop, varieties, images, videos, downloadStates ->
             CropContentTuple(crop, varieties, images, videos, downloadStates)
         },
-        _selectedVarietyId,
-        _selectedTopicId,
-        _fullScreenImage,
-        _launchError
-    ) { content, selectedVarId, topicId, fullScreenImg, launchErr ->
-        val filteredVideos = if (topicId == null) {
+        _uiSelectionTuple
+    ) { content, selection ->
+        val filteredVideos = if (selection.selectedTopicId == null) {
             content.videos
         } else {
-            content.videos.filter { it.topicId == topicId }
+            content.videos.filter { it.topicId == selection.selectedTopicId }
         }
         CropDetailUiState(
             crop = content.crop,
             varietyRequirements = content.varietyRequirements,
-            selectedVarietyId = selectedVarId,
+            selectedVarietyId = selection.selectedVarietyId,
             images = content.images,
             videos = filteredVideos,
-            selectedTopicId = topicId,
+            selectedTopicId = selection.selectedTopicId,
             downloadStates = content.downloadStates,
-            fullScreenImage = fullScreenImg,
-            launchErrorMessage = launchErr,
-            isLoading = false
+            fullScreenImage = selection.fullScreenImage,
+            launchErrorMessage = selection.launchErrorMessage,
+            isLoading = false,
+            isRefreshing = selection.isRefreshing
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = CropDetailUiState(isLoading = true)
     )
+
+    fun refresh() {
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            try {
+                if (appSyncController != null) {
+                    appSyncController.refreshNow(force = true)
+                } else {
+                    repository.syncRemoteContent()
+                }
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
+    }
 
     fun selectVariety(varietyId: String?) {
         _selectedVarietyId.value = varietyId
@@ -128,7 +164,8 @@ class CropDetailViewModel(
                     CropDetailViewModel(
                         cropId = cropId,
                         repository = appContainer.bakaiyaCropRepository,
-                        downloadManager = appContainer.videoDownloadManager
+                        downloadManager = appContainer.videoDownloadManager,
+                        appSyncController = appContainer.appSyncController
                     )
                 }
             }

@@ -11,13 +11,15 @@ import com.krishisaathi.app.domain.model.AnimalCategory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 
 data class LivestockUiState(
     val categories: List<AnimalCategory> = emptyList(),
     val animals: List<Animal> = emptyList(),
     val selectedCategoryId: String? = null,
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val isRefreshing: Boolean = false
 )
 
 class LivestockViewModel(
@@ -30,6 +32,11 @@ class LivestockViewModel(
 
     init {
         loadLivestockData(forceRemoteRefresh = false)
+        viewModelScope.launch {
+            appContainer.appSyncController.syncGeneration.drop(1).collect {
+                reloadFromRoom()
+            }
+        }
     }
 
     fun refresh() {
@@ -37,31 +44,40 @@ class LivestockViewModel(
     }
 
     private fun loadLivestockData(forceRemoteRefresh: Boolean) {
-        _uiState.value = _uiState.value.copy(isLoading = true)
+        _uiState.value = _uiState.value.copy(
+            isLoading = _uiState.value.animals.isEmpty(),
+            isRefreshing = forceRemoteRefresh
+        )
         viewModelScope.launch(appContainer.dispatchers.io) {
             try {
                 val repo = appContainer.bakaiyaCropRepository
                 if (forceRemoteRefresh) {
-                    repo.syncRemoteContent()
+                    appContainer.appSyncController.refreshNow(force = true)
                 } else {
                     repo.ensureContentSeeded()
                 }
-                val categories = repo.getAnimalCategories()
-                val animals = if (initialCategoryId != null) {
-                    repo.getAnimalsByCategory(initialCategoryId)
-                } else {
-                    repo.getAllAnimals()
-                }
-                _uiState.value = LivestockUiState(
-                    categories = categories,
-                    animals = animals,
-                    selectedCategoryId = initialCategoryId,
-                    isLoading = false
-                )
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(isLoading = false)
+                reloadFromRoom()
+            } catch (_: Exception) {
+                _uiState.value = _uiState.value.copy(isLoading = false, isRefreshing = false)
             }
         }
+    }
+
+    private suspend fun reloadFromRoom() {
+        val repo = appContainer.bakaiyaCropRepository
+        val categories = repo.getAnimalCategories()
+        val animals = if (initialCategoryId != null) {
+            repo.getAnimalsByCategory(initialCategoryId)
+        } else {
+            repo.getAllAnimals()
+        }
+        _uiState.value = LivestockUiState(
+            categories = categories,
+            animals = animals,
+            selectedCategoryId = initialCategoryId,
+            isLoading = false,
+            isRefreshing = false
+        )
     }
 
     companion object {

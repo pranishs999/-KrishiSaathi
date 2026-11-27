@@ -63,6 +63,9 @@ interface BakaiyaCropDao {
     fun clearImages(): Int
 
     // Educational Videos (crop + livestock)
+    @Query("SELECT * FROM educational_videos ORDER BY topic_id ASC, title_ne ASC")
+    fun getAllVideos(): Flow<List<EducationalVideoEntity>>
+
     @Query("SELECT * FROM educational_videos WHERE crop_id = :cropId ORDER BY topic_id ASC")
     fun getVideosForCrop(cropId: String): Flow<List<EducationalVideoEntity>>
 

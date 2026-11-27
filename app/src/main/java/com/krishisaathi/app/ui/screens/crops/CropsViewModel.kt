@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.krishisaathi.app.data.remote.AppSyncController
 import com.krishisaathi.app.di.AppContainer
 import com.krishisaathi.app.domain.model.BakaiyaCrop
 import com.krishisaathi.app.domain.model.CropCategory
@@ -21,23 +22,27 @@ data class CropsUiState(
     val crops: List<BakaiyaCrop> = emptyList(),
     val selectedCategoryId: String? = null,
     val searchQuery: String = "",
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false
 )
 
 class CropsViewModel(
     private val repository: BakaiyaCropRepository,
-    initialCategoryId: String? = null
+    initialCategoryId: String? = null,
+    private val appSyncController: AppSyncController? = null
 ) : ViewModel() {
 
     private val _selectedCategory = MutableStateFlow<String?>(initialCategoryId)
     private val _searchQuery = MutableStateFlow("")
+    private val _isRefreshing = MutableStateFlow(false)
 
     val uiState: StateFlow<CropsUiState> = combine(
         repository.getCategories(),
         repository.getCrops(),
         _selectedCategory,
-        _searchQuery
-    ) { categories, allCrops, selectedCategory, query ->
+        _searchQuery,
+        _isRefreshing
+    ) { categories, allCrops, selectedCategory, query, isRefreshing ->
         val filtered = allCrops.filter { crop ->
             val matchesCategory = selectedCategory == null || crop.categoryId == selectedCategory
             val matchesQuery = query.isBlank() ||
@@ -52,7 +57,8 @@ class CropsViewModel(
             crops = filtered,
             selectedCategoryId = selectedCategory,
             searchQuery = query,
-            isLoading = false
+            isLoading = false,
+            isRefreshing = isRefreshing
         )
     }.stateIn(
         scope = viewModelScope,
@@ -68,7 +74,16 @@ class CropsViewModel(
 
     fun refresh() {
         viewModelScope.launch {
-            repository.syncRemoteContent()
+            _isRefreshing.value = true
+            try {
+                if (appSyncController != null) {
+                    appSyncController.refreshNow(force = true)
+                } else {
+                    repository.syncRemoteContent()
+                }
+            } finally {
+                _isRefreshing.value = false
+            }
         }
     }
 
@@ -84,7 +99,11 @@ class CropsViewModel(
         fun factory(appContainer: AppContainer, initialCategoryId: String? = null): ViewModelProvider.Factory =
             viewModelFactory {
                 initializer {
-                    CropsViewModel(appContainer.bakaiyaCropRepository, initialCategoryId)
+                    CropsViewModel(
+                        appContainer.bakaiyaCropRepository,
+                        initialCategoryId,
+                        appContainer.appSyncController
+                    )
                 }
             }
     }

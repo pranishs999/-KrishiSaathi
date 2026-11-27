@@ -49,6 +49,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
+import com.krishisaathi.app.ui.components.KrishiPullToRefreshBox
 import com.krishisaathi.app.ui.theme.DeepCharcoal
 import com.krishisaathi.app.ui.theme.ForestGreen
 import com.krishisaathi.app.ui.theme.LeafGreen
@@ -72,14 +73,20 @@ fun HomeScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
 
-    Column(
+    KrishiPullToRefreshBox(
+        isRefreshing = state.isRefreshing,
+        onRefresh = viewModel::refresh,
         modifier = modifier
             .fillMaxSize()
             .background(NaturalIvory)
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
         // App Identity & Personalized Welcome Header
         val farmer = state.farmerRegistration
         Column {
@@ -201,6 +208,7 @@ fun HomeScreen(
                 icon = Icons.Outlined.Campaign,
                 onClick = { onNavigateToInfoSection("news") }
             )
+        }
         }
     }
 }

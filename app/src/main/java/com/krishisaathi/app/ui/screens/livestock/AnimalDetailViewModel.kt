@@ -17,6 +17,7 @@ import com.krishisaathi.app.domain.model.EducationalVideo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 
 data class AnimalDetailUiState(
@@ -28,7 +29,8 @@ data class AnimalDetailUiState(
     val diseases: List<AnimalDisease> = emptyList(),
     val images: List<AnimalImage> = emptyList(),
     val videos: List<EducationalVideo> = emptyList(),
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val isRefreshing: Boolean = false
 )
 
 class AnimalDetailViewModel(
@@ -40,36 +42,57 @@ class AnimalDetailViewModel(
     val uiState: StateFlow<AnimalDetailUiState> = _uiState.asStateFlow()
 
     init {
-        loadAnimalDetail()
-    }
-
-    private fun loadAnimalDetail() {
-        viewModelScope.launch(appContainer.dispatchers.io) {
-            try {
-                val repo = appContainer.bakaiyaCropRepository
-                val animal = repo.getAnimalById(animalId)
-                val breeds = repo.getBreedsForAnimal(animalId)
-                val housing = repo.getHousingForAnimal(animalId)
-                val feeding = repo.getFeedingForAnimal(animalId)
-                val health = repo.getHealthForAnimal(animalId)
-                val diseases = repo.getDiseasesForAnimal(animalId)
-                val images = repo.getImagesForAnimal(animalId)
-                val videos = repo.getVideosForAnimal(animalId)
-                _uiState.value = AnimalDetailUiState(
-                    animal = animal,
-                    breeds = breeds,
-                    housing = housing,
-                    feeding = feeding,
-                    health = health,
-                    diseases = diseases,
-                    images = images,
-                    videos = videos,
-                    isLoading = false
-                )
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(isLoading = false)
+        loadAnimalDetail(forceRemoteRefresh = false)
+        viewModelScope.launch {
+            appContainer.appSyncController.syncGeneration.drop(1).collect {
+                reloadFromRoom()
             }
         }
+    }
+
+    fun refresh() {
+        loadAnimalDetail(forceRemoteRefresh = true)
+    }
+
+    private fun loadAnimalDetail(forceRemoteRefresh: Boolean) {
+        _uiState.value = _uiState.value.copy(
+            isLoading = _uiState.value.animal == null,
+            isRefreshing = forceRemoteRefresh
+        )
+        viewModelScope.launch(appContainer.dispatchers.io) {
+            try {
+                if (forceRemoteRefresh) {
+                    appContainer.appSyncController.refreshNow(force = true)
+                }
+                reloadFromRoom()
+            } catch (_: Exception) {
+                _uiState.value = _uiState.value.copy(isLoading = false, isRefreshing = false)
+            }
+        }
+    }
+
+    private suspend fun reloadFromRoom() {
+        val repo = appContainer.bakaiyaCropRepository
+        val animal = repo.getAnimalById(animalId)
+        val breeds = repo.getBreedsForAnimal(animalId)
+        val housing = repo.getHousingForAnimal(animalId)
+        val feeding = repo.getFeedingForAnimal(animalId)
+        val health = repo.getHealthForAnimal(animalId)
+        val diseases = repo.getDiseasesForAnimal(animalId)
+        val images = repo.getImagesForAnimal(animalId)
+        val videos = repo.getVideosForAnimal(animalId)
+        _uiState.value = AnimalDetailUiState(
+            animal = animal,
+            breeds = breeds,
+            housing = housing,
+            feeding = feeding,
+            health = health,
+            diseases = diseases,
+            images = images,
+            videos = videos,
+            isLoading = false,
+            isRefreshing = false
+        )
     }
 
     companion object {

@@ -15,13 +15,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material.icons.outlined.Verified
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -34,9 +38,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,10 +52,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.krishisaathi.app.domain.model.VerifiedYouTubeChannels
-import com.krishisaathi.app.domain.model.YouTubeChannel
+import com.krishisaathi.app.di.AppContainer
+import com.krishisaathi.app.domain.model.EducationalVideo
 import com.krishisaathi.app.media.YouTubeLaunchResult
 import com.krishisaathi.app.media.YouTubeLauncher
+import com.krishisaathi.app.ui.components.KrishiPullToRefreshBox
+import com.krishisaathi.app.ui.screens.home.CropThumbnailImage
 import com.krishisaathi.app.ui.theme.DeepCharcoal
 import com.krishisaathi.app.ui.theme.DividerSage
 import com.krishisaathi.app.ui.theme.ErrorMaroon
@@ -58,19 +67,40 @@ import com.krishisaathi.app.ui.theme.MutedGreenGrey
 import com.krishisaathi.app.ui.theme.NaturalIvory
 import com.krishisaathi.app.ui.theme.SoftSage
 import com.krishisaathi.app.ui.theme.SuccessGreen
+import kotlinx.coroutines.launch
 
 /**
- * कृषि प्रविधि युट्यूब च्यानलहरू — Directory of verified Nepali agricultural YouTube channels.
+ * कृषि भिडियो तथा च्यानल सामग्री — Driven strictly by Supabase `educational_videos`.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun YouTubeChannelsScreen(
+    appContainer: AppContainer,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val channels = VerifiedYouTubeChannels.channels
+    val scope = rememberCoroutineScope()
+    val videos by appContainer.bakaiyaCropRepository.getAllVideos().collectAsState(initial = emptyList())
+    val crops by appContainer.bakaiyaCropRepository.getCrops().collectAsState(initial = emptyList())
+    val cropNameMap = remember(crops) { crops.associate { it.id to it.nameNe } }
+    var isRefreshing by remember { mutableStateOf(false) }
     var launchErrorMessage by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(Unit) {
+        appContainer.bakaiyaCropRepository.ensureContentSeeded()
+    }
+
+    val triggerRefresh: () -> Unit = {
+        scope.launch {
+            isRefreshing = true
+            try {
+                appContainer.appSyncController.refreshNow(force = true)
+            } finally {
+                isRefreshing = false
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -78,7 +108,7 @@ fun YouTubeChannelsScreen(
                 TopAppBar(
                     title = {
                         Text(
-                            text = "कृषि युट्यूब च्यानलहरू",
+                            text = "कृषि शैक्षिक भिडियोहरू",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = ForestGreen
@@ -102,89 +132,103 @@ fun YouTubeChannelsScreen(
         },
         containerColor = NaturalIvory
     ) { innerPadding ->
-        LazyColumn(
+        KrishiPullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = triggerRefresh,
             modifier = modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            item {
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = "नेपालका प्रमाणित कृषि प्रविधि युट्यूब च्यानलहरू। च्यानल खोल्न कार्ड थिच्नुहोस्।",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = DeepCharcoal
-                )
-            }
-
-            launchErrorMessage?.let { errorMsg ->
-                item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = SoftSage),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            if (videos.isEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.PlayCircle,
+                        contentDescription = null,
+                        tint = ForestGreen,
+                        modifier = Modifier.size(56.dp)
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "Supabase बाट शैक्षिक भिडियो उपलब्ध छैन।",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = DeepCharcoal
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Button(
+                        onClick = triggerRefresh,
+                        colors = ButtonDefaults.buttonColors(containerColor = ForestGreen),
+                        shape = RoundedCornerShape(24.dp)
                     ) {
-                        Text(
-                            text = errorMsg,
-                            color = ErrorMaroon,
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(12.dp)
-                        )
+                        Text("Supabase बाट सिंक गर्नुहोस्", color = NaturalIvory)
                     }
                 }
-            }
-
-            items(channels, key = { it.id }) { channel ->
-                ChannelCard(
-                    channel = channel,
-                    onClick = {
-                        when (val result = YouTubeLauncher.openYouTubeChannel(context, channel.channelUrl)) {
-                            is YouTubeLaunchResult.Launched -> launchErrorMessage = null
-                            is YouTubeLaunchResult.Error -> launchErrorMessage = result.messageNe
-                        }
-                    }
-                )
-            }
-
-            item {
-                Card(
+            } else {
+                LazyColumn(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(containerColor = LightGreen),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
+                    item {
+                        Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "सूचना",
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold,
+                            text = "Supabase बाट सिंक गरिएका आधिकारिक कृषि भिडियो सामग्री (${videos.size})। हेर्न कार्ड थिच्नुहोस्।",
+                            style = MaterialTheme.typography.bodyMedium,
                             color = DeepCharcoal
                         )
-                        Text(
-                            text = "यी च्यानलहरू सार्वजनिक रूपमा उपलब्ध नेपाली कृषि शैक्षिक सामग्रीका आधारमा सूचीबद्ध गरिएका हुन्। च्यानल खोल्न इन्टरनेट आवश्यक पर्दछ र बकैया कृषि साथीले यी च्यानलहरूको स्वामित्व राख्दैन।",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MutedGreenGrey
+                    }
+
+                    launchErrorMessage?.let { errorMsg ->
+                        item {
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(containerColor = SoftSage),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                            ) {
+                                Text(
+                                    text = errorMsg,
+                                    color = ErrorMaroon,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier.padding(12.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    items(videos, key = { it.id }) { video ->
+                        RemoteVideoCard(
+                            video = video,
+                            targetLabel = cropNameMap[video.cropId] ?: "कृषि प्रविधि",
+                            onClick = {
+                                when (val result = YouTubeLauncher.openYouTubeVideo(context, video.videoUrl)) {
+                                    is YouTubeLaunchResult.Launched -> launchErrorMessage = null
+                                    is YouTubeLaunchResult.Error -> launchErrorMessage = result.messageNe
+                                }
+                            }
                         )
                     }
+
+                    item { Spacer(modifier = Modifier.height(16.dp)) }
                 }
             }
-
-            item { Spacer(modifier = Modifier.height(16.dp)) }
         }
     }
 }
 
 @Composable
-private fun ChannelCard(
-    channel: YouTubeChannel,
+private fun RemoteVideoCard(
+    video: EducationalVideo,
+    targetLabel: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -202,27 +246,19 @@ private fun ChannelCard(
                 .padding(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(ForestGreen),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.PlayCircle,
-                    contentDescription = null,
-                    tint = NaturalIvory,
-                    modifier = Modifier.size(28.dp)
-                )
-            }
+            CropThumbnailImage(
+                imageUrl = video.thumbnailUrl,
+                contentDescription = video.titleNe,
+                fallbackIcon = Icons.Outlined.PlayCircle,
+                modifier = Modifier.size(width = 88.dp, height = 64.dp)
+            )
 
             Spacer(modifier = Modifier.width(12.dp))
 
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = channel.nameNe,
+                        text = video.titleNe,
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                         color = DeepCharcoal,
@@ -230,25 +266,24 @@ private fun ChannelCard(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f, fill = false)
                     )
-                    if (channel.isVerified) {
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Icon(
-                            imageVector = Icons.Outlined.Verified,
-                            contentDescription = "प्रमाणित",
-                            tint = SuccessGreen,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        imageVector = Icons.Outlined.Verified,
+                        contentDescription = "प्रमाणित",
+                        tint = SuccessGreen,
+                        modifier = Modifier.size(16.dp)
+                    )
                 }
                 Text(
-                    text = channel.handle,
+                    text = "${video.channelName} • $targetLabel",
                     style = MaterialTheme.typography.labelSmall,
                     color = ForestGreen,
-                    maxLines = 1
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = channel.descriptionNe,
+                    text = video.descriptionNe,
                     style = MaterialTheme.typography.bodySmall,
                     color = MutedGreenGrey,
                     maxLines = 2,
@@ -258,12 +293,20 @@ private fun ChannelCard(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            Icon(
-                imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
-                contentDescription = "च्यानल खोल्नुहोस्",
-                tint = ForestGreen,
-                modifier = Modifier.size(20.dp)
-            )
+            Box(
+                modifier = Modifier
+                    .size(34.dp)
+                    .clip(CircleShape)
+                    .background(SoftSage),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
+                    contentDescription = "भिडियो खोल्नुहोस्",
+                    tint = ForestGreen,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
         }
     }
 }
