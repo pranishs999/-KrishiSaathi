@@ -1,0 +1,149 @@
+{% extends "core/base.html" %}
+{% block title %}Staff Dashboard • Bakaiya Krishi Saathi Admin{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">My Dashboard</h1>
+            <p class="text-sm text-slate-600 mt-1">Your personal content overview</p>
+        </div>
+    </div>
+
+    <!-- Personal Stats -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-xl border shadow-sm">
+            <div class="text-xs font-semibold uppercase text-slate-500">My Crops</div>
+            <div class="text-2xl font-bold mt-1">{{ my_crops }}</div>
+            <div class="text-xs text-slate-600 mt-1">
+                <span class="text-emerald-600 font-semibold">{{ my_published_crops }} published</span> •
+                <span class="text-sky-600 font-semibold">{{ my_crops_in_review }} in review</span>
+            </div>
+        </div>
+        <div class="bg-white p-5 rounded-xl border shadow-sm">
+            <div class="text-xs font-semibold uppercase text-slate-500">My Livestock</div>
+            <div class="text-2xl font-bold mt-1">{{ my_livestock }}</div>
+            <div class="text-xs text-slate-600 mt-1">
+                <span class="text-emerald-600 font-semibold">{{ my_published_livestock }} published</span>
+            </div>
+        </div>
+        <div class="bg-white p-5 rounded-xl border shadow-sm">
+            <div class="text-xs font-semibold uppercase text-slate-500">My Guides</div>
+            <div class="text-2xl font-bold mt-1">{{ my_guides }}</div>
+            <div class="text-xs text-slate-600 mt-1">
+                <span class="text-emerald-600 font-semibold">{{ my_published_guides }} published</span>
+            </div>
+        </div>
+        <div class="bg-white p-5 rounded-xl border shadow-sm">
+            <div class="text-xs font-semibold uppercase text-slate-500">My Media</div>
+            <div class="text-2xl font-bold mt-1">{{ my_media }}</div>
+            <div class="text-xs text-slate-600 mt-1">Uploaded</div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Recent Crops -->
+        <div class="lg:col-span-2 bg-white p-5 rounded-xl border shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-slate-900">My Recent Crops</h2>
+                <a href="{% url 'core:crops_list' %}" class="text-xs font-bold text-[#174D36] hover:text-emerald-900">View All →</a>
+            </div>
+            {% if recent_crops %}
+            <div class="space-y-3">
+                {% for crop in recent_crops %}
+                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">
+                            <i class="fa-solid fa-leaf"></i>
+                        </div>
+                        <div>
+                            <div class="font-semibold text-slate-900">{{ crop.name_en }}</div>
+                            <div class="text-xs text-slate-500">{{ crop.name_ne }} • {{ crop.get_review_status_display }}</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-1 rounded-full text-xs font-semibold
+                            {% if crop.is_published %}bg-emerald-100 text-emerald-800
+                            {% elif crop.review_status == 'in_review' %}bg-sky-100 text-sky-800
+                            {% elif crop.review_status == 'needs_rereview' %}bg-orange-100 text-orange-800
+                            {% else %}bg-amber-100 text-amber-800{% endif %}">
+                            {{ crop.get_review_status_display }}
+                        </span>
+                        <a href="{% url 'core:crop_detail' crop.id %}" class="text-xs text-[#174D36] hover:text-emerald-900">View</a>
+                        <a href="{% url 'core:crop_edit' crop.id %}" class="text-xs text-blue-600 hover:text-blue-800">Edit</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center text-slate-500 py-8">
+                <i class="fa-solid fa-leaf text-3xl text-slate-300 mb-2"></i>
+                <p class="text-slate-500">No crops created yet. <a href="{% url 'core:crop_create' %}" class="text-[#174D36] hover:underline">Create your first crop</a></p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- My Activity -->
+        <div class="space-y-6">
+            <div class="bg-white p-5 rounded-xl border shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-bold text-slate-900">My Media</h2>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-slate-900">{{ my_media }}</div>
+                    <div class="text-xs text-slate-500">Media assets uploaded</div>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl border shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-bold text-slate-900">My Recent Activity</h2>
+                </div>
+                {% if recent_my_logs %}
+                <div class="space-y-3">
+                    {% for log in recent_my_logs %}
+                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">
+                                <i class="fa-solid fa-clock"></i>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-slate-900">{{ log.action|replace:"_"," "|title }}</div>
+                                <div class="text-xs text-slate-500">{{ log.target_type }}: {{ log.target_id }}</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xs text-slate-500">{{ log.created_at|date:"M d, H:i" }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center text-slate-500 py-8">No recent activity.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="bg-white p-5 rounded-xl border shadow-sm">
+        <h2 class="text-lg font-bold text-slate-900 mb-4">Quick Actions</h2>
+        <div class="flex flex-wrap gap-3">
+            <a href="{% url 'core:crop_create' %}" class="px-4 py-2.5 rounded-lg bg-[#174D36] text-white text-sm font-semibold hover:bg-emerald-900">
+                <i class="fa-solid fa-leaf mr-2"></i>Add Crop
+            </a>
+            <a href="{% url 'core:legacy_crop_create' %}" class="px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50">
+                <i class="fa-solid fa-seedling mr-2"></i>Add Legacy Crop
+            </a>
+            <a href="{% url 'core:legacy_guide_create' %}" class="px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50">
+                <i class="fa-solid fa-book mr-2"></i>Add Guide
+            </a>
+            <a href="{% url 'core:media_library' %}" class="px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50">
+                <i class="fa-solid fa-image mr-2"></i>Upload Media
+            </a>
+            <a href="{% url 'core:livestock_list' %}" class="px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50">
+                <i class="fa-solid fa-cow mr-2"></i>Manage Livestock
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

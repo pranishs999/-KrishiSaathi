@@ -1,0 +1,62 @@
+{% extends "core/base.html" %}
+{% block title %}{% if not is_create %}Edit Crop{% else %}New Crop Draft{% endif %} • Bakaiya Krishi Saathi Admin{% endblock %}
+{% block content %}
+<div class="max-w-3xl bg-white p-6 rounded-xl border shadow-sm">
+    <h1 class="text-xl font-bold mb-4">{% if not is_create %}Edit Crop: {{ crop.name_en }}{% else %}Create New Crop Draft{% endif %}</h1>
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium mb-1">English Name</label>
+                <input name="name_en" required value="{{ crop.name_en|default:'' }}" class="w-full px-3 py-2 border rounded-lg" />
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Nepali Name (Farmer Content)</label>
+                <input name="name_ne" required value="{{ crop.name_ne|default:'' }}" class="w-full px-3 py-2 border rounded-lg" />
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Scientific Name</label>
+                <input name="scientific_name" value="{{ crop.scientific_name|default:'' }}" class="w-full px-3 py-2 border rounded-lg" />
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Category ID</label>
+                <input name="category_id" value="{{ crop.category_id|default:'cat-cereal' }}" class="w-full px-3 py-2 border rounded-lg" />
+            </div>
+        </div>
+        <div>
+            <label class="block text-sm font-medium mb-1">Summary Description (Nepali)</label>
+            <textarea name="description_ne" rows="3" required class="w-full px-3 py-2 border rounded-lg">{{ crop.description_ne|default:'' }}</textarea>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium mb-1">Recommended Varieties</label>
+                <input name="varieties" value="{{ crop.varieties|default:'' }}" class="w-full px-3 py-2 border rounded-lg" />
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Planting Season (Nepali)</label>
+                <input name="planting_season_ne" value="{{ crop.planting_season_ne|default:'' }}" class="w-full px-3 py-2 border rounded-lg" />
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Suitable Altitude (Nepali)</label>
+                <input name="altitude_summary_ne" value="{{ crop.altitude_summary_ne|default:'' }}" class="w-full px-3 py-2 border rounded-lg" />
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Soil Types (Nepali)</label>
+                <input name="soil_types_ne" value="{{ crop.soil_types_ne|default:'' }}" class="w-full px-3 py-2 border rounded-lg" />
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Source Reference (Mandatory for Review/Publish)</label>
+                <input name="source_reference" value="{{ crop.source_reference|default:'' }}" class="w-full px-3 py-2 border rounded-lg" />
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Thumbnail URL</label>
+                <input name="thumbnail_url" type="url" value="{{ crop.thumbnail_url|default:'' }}" class="w-full px-3 py-2 border rounded-lg" />
+            </div>
+        </div>
+        <div class="flex justify-end gap-3 pt-2">
+            <a href="{% url 'core:crops_list' %}" class="px-4 py-2 rounded-full border text-sm">Cancel</a>
+            <button type="submit" class="px-5 py-2 rounded-full bg-[#174D36] text-white text-sm font-semibold">Save Crop</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

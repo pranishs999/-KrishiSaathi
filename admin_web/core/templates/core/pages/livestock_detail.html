@@ -1,0 +1,37 @@
+{% extends "core/base.html" %}
+{% block title %}{{ animal.name_en }} Sections • Bakaiya Krishi Saathi Admin{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold">{{ animal.name_en }} ({{ animal.name_ne }})</h1>
+            <p class="text-sm text-slate-600">Status: <strong>{{ animal.review_status }}</strong> | Veterinary Safety Notice Required</p>
+        </div>
+        <a href="{% url 'core:livestock_list' %}" class="px-4 py-2 rounded-full border text-sm">Back to Livestock</a>
+    </div>
+
+    <div class="space-y-4">
+        {% for row in section_rows %}
+        <form method="post" class="bg-white p-4 rounded-xl border shadow-sm space-y-3">
+            {% csrf_token %}
+            <input type="hidden" name="section_number" value="{{ row.number }}" />
+            <div class="flex justify-between items-center">
+                <h2 class="font-semibold text-sm text-[#174D36]">{{ row.title_en }}</h2>
+                <span class="text-xs px-2 py-0.5 rounded bg-slate-100">{{ row.entry.review_status|default:"unwritten" }}</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <textarea name="body_ne" rows="2" placeholder="Farmer-facing Nepali text..." class="w-full px-3 py-2 border rounded-lg text-sm">{{ row.entry.body_ne|default:'' }}</textarea>
+                <textarea name="body_en" rows="2" placeholder="English review summary..." class="w-full px-3 py-2 border rounded-lg text-sm">{{ row.entry.body_en|default:'' }}</textarea>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <input name="source_reference" value="{{ row.entry.source_reference|default:animal.source_reference }}" placeholder="Authoritative source citation" class="flex-1 min-w-[220px] px-3 py-1.5 border rounded-lg text-xs" />
+                <label class="text-xs flex items-center gap-1.5">
+                    <input type="checkbox" name="is_applicable" {% if row.entry %}{% if row.entry.is_applicable %}checked{% endif %}{% else %}checked{% endif %} /> Applicable
+                </label>
+                <button type="submit" class="px-4 py-1.5 rounded-full bg-[#174D36] text-white text-xs font-semibold">Save Section</button>
+            </div>
+        </form>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,139 @@
+{% extends "core/base.html" %}
+{% block title %}{{ crop.name_en }} • Crop Detail • Bakaiya Krishi Saathi Admin{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-4">
+        <div>
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight">{{ crop.name_en }}</h1>
+            <div class="text-sm text-slate-600 mt-1">{{ crop.name_ne }}</div>
+        </div>
+        <div class="flex space-x-2 mt-4 sm:mt-0">
+            <a href="{% url 'core:crop_edit' crop.id %}" class="px-4 py-2 rounded-xl border border-slate-300 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition">
+                <i class="fa-solid fa-pen-to-square mr-1"></i>सम्पादन (Edit)
+            </a>
+            <a href="{% url 'core:crops_list' %}" class="px-4 py-2 rounded-xl bg-white text-slate-700 text-sm font-semibold hover:bg-slate-50 transition">
+                ← सूचीमा फर्कनुहोस् (Back to List)
+            </a>
+        </div>
+    </div>
+
+    {% if source_doc %}
+    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-2">
+        <div class="flex items-start gap-3">
+            <div class="w-8 h-8 rounded-full bg-amber-600 text-white flex items-center justify-center text-xs font-bold mt-0.5">S</div>
+            <div>
+                <div class="text-xs font-bold text-amber-800 uppercase tracking-wider">Source Document</div>
+                <div class="text-sm text-amber-700">{{ source_doc.title }}</div>
+                <div class="text-xs text-amber-600 mt-1">{{ source_doc.publisher }}{% if source_doc.publication_year %}, {{ source_doc.publication_year }}{% endif %}</div>
+                {% if source_doc.url %}<div class="text-xs text-amber-600 mt-1"><a href="{{ source_doc.url }}" target="_blank" class="underline">{{ source_doc.url }}</a></div>{% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Primary Identification -->
+        <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-lg font-bold text-slate-900 uppercase tracking-wider text-slate-500">Crop Identification</h2>
+                <span class="px-3 py-1 rounded-full text-xs font-semibold
+                    {% if crop.is_published %}bg-emerald-100 text-emerald-800{% else %}bg-amber-100 text-amber-800{% endif %}">
+                    {{ crop.get_review_status_display }}
+                </span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Name (English)</div>
+                    <div class="text-lg font-semibold text-slate-900">{{ crop.name_en }}</div>
+                </div>
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Name (Nepali)</div>
+                    <div class="text-lg font-semibold text-slate-900">{{ crop.name_ne }}</div>
+                </div>
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Scientific Name</div>
+                    <div class="text-lg font-semibold text-slate-900 italic">{{ crop.scientific_name|default:"—" }}</div>
+                </div>
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Category ID</div>
+                    <div class="text-lg font-semibold text-slate-900">{{ crop.category_id }}</div>
+                </div>
+                <div class="md:col-span-2">
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Description (Nepali)</div>
+                    <div class="text-slate-700 whitespace-pre-line">{{ crop.description_ne }}</div>
+                </div>
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Recommended Varieties</div>
+                    <div class="text-slate-700">{{ crop.varieties|default:"—" }}</div>
+                </div>
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Planting Season (Nepali)</div>
+                    <div class="text-slate-700">{{ crop.planting_season_ne|default:"—" }}</div>
+                </div>
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Suitable Altitude (Nepali)</div>
+                    <div class="text-slate-700">{{ crop.altitude_summary_ne|default:"—" }}</div>
+                </div>
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Soil Types (Nepali)</div>
+                    <div class="text-slate-700">{{ crop.soil_types_ne|default:"—" }}</div>
+                </div>
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Source Reference</div>
+                    <div class="text-slate-700">{{ crop.source_reference|default:"Missing source" }}</div>
+                </div>
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Thumbnail URL</div>
+                    <div class="text-slate-700">
+                        {% if crop.thumbnail_url %}
+                        <a href="{{ crop.thumbnail_url }}" target="_blank" class="text-[#174D36] underline">{{ crop.thumbnail_url }}</a>
+                        {% else %}—{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status & Metadata -->
+        <div class="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <h2 class="text-lg font-bold text-slate-900 uppercase tracking-wider text-slate-500 mb-6">Status & Metadata</h2>
+            <div class="space-y-4">
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Review Status</div>
+                    <span class="px-3 py-1 rounded-full text-xs font-semibold
+                        {% if crop.review_status == 'published' %}bg-emerald-100 text-emerald-800
+                        {% elif crop.review_status == 'approved' %}bg-blue-100 text-blue-800
+                        {% elif crop.review_status == 'in_review' %}bg-sky-100 text-sky-800
+                        {% elif crop.review_status == 'needs_rereview' %}bg-orange-100 text-orange-800
+                        {% else %}bg-amber-100 text-amber-800{% endif %}">
+                        {{ crop.get_review_status_display }}
+                    </span>
+                </div>
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Published</div>
+                    <span class="px-3 py-1 rounded-full text-xs font-semibold
+                        {% if crop.is_published %}bg-emerald-100 text-emerald-800{% else %}bg-slate-100 text-slate-600{% endif %}">
+                        {% if crop.is_published %}Yes{% else %}No{% endif %}
+                    </span>
+                </div>
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Last Updated</div>
+                    <div class="text-slate-700">{{ crop.updated_at|date:"Y-m-d H:i" }}</div>
+                </div>
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Crop Entry ID</div>
+                    <div class="text-xs font-mono text-slate-500 break-all">{{ crop.id }}</div>
+                </div>
+            </div>
+
+            <div class="mt-6 pt-6 border-t border-slate-200">
+                <form method="post" action="{% url 'core:crop_delete' crop.id %}" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition" onclick="return confirm('के तपाईं यो बाली एन्ट्री हटाउन निश्चित हुनुहुन्छ?')">
+                        <i class="fa-solid fa-trash-can mr-1"></i>हटाउनुहोस् (Delete)
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

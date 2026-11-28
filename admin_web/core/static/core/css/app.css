@@ -1,0 +1,21 @@
+/* Centralized application styles for Bakaiya Krishi Saathi Admin CMS */
+
+:root {
+  --ks-primary: #174d36;
+  --ks-primary-hover: #064e3b;
+  --ks-surface: #ffffff;
+  --ks-bg: #f8fafc;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--ks-bg);
+}
+
+.ks-focus-ring:focus {
+  outline: 2px solid var(--ks-primary);
+  outline-offset: 2px;
+}

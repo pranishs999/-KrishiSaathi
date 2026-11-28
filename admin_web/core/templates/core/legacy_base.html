@@ -1,0 +1,48 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ne" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}कृषि साथी - प्रशासकीय ड्यासबोर्ड (Krishi Saathi Admin){% endblock %}</title>
+    <link rel="icon" type="image/svg+xml" href="{% static 'core/icons/krishi-saathi.svg' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        agro: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        },
+                        harvest: {
+                            500: '#f59e0b',
+                            600: '#d97706',
+                            700: '#b45309',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'core/css/app.css' %}">
+</head>
+<body class="h-full flex flex-col font-sans text-slate-800 antialiased">
+    {% include "core/components/legacy_navbar.html" %}
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {% include "core/components/messages.html" %}
+        {% block content %}{% endblock %}
+    </main>
+
+    {% include "core/components/legacy_footer.html" %}
+    <script src="{% static 'core/js/app.js' %}"></script>
+</body>
+</html>

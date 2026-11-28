@@ -1,0 +1,96 @@
+{% extends 'core/legacy_base.html' %}
+
+{% block title %}बाली निर्देशिका - कृषि साथी प्रशासकीय पोर्टल{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight">बाली व्यवस्थापन (Crops Catalogue)</h1>
+            <p class="text-sm text-slate-600 mt-1">मोबाइल एपमा सिंक हुने आधिकारिक बालीहरूको सूची तथा विवरण।</p>
+        </div>
+        <div class="mt-4 sm:mt-0">
+            <a href="{% url 'core:legacy_crop_create' %}" class="inline-flex items-center px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-agro-700 hover:bg-agro-800 shadow-sm transition">
+                <i class="fa-solid fa-plus mr-2"></i>नयाँ बाली थप्नुहोस्
+            </a>
+        </div>
+    </div>
+
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
+        <form method="get" class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+            <div class="relative flex-1 sm:w-64">
+                <input type="text" name="q" value="{{ search_query }}" placeholder="बालीको नाम खोज्नुहोस्..." class="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-agro-600 focus:border-agro-600">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
+            </div>
+            <select name="category" data-auto-submit="true" class="py-2 px-3 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-agro-600 bg-white">
+                <option value="">सबै वर्गहरू (All Categories)</option>
+                {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if selected_category == cat.id %}selected{% endif %}>{{ cat.name_ne }} ({{ cat.name_en }})</option>
+                {% endfor %}
+            </select>
+            {% if search_query or selected_category %}
+            <a href="{% url 'core:legacy_crops_list' %}" class="px-3 py-2 text-xs font-semibold text-slate-500 hover:text-slate-800 self-center">रिसेट (Reset)</a>
+            {% endif %}
+        </form>
+        <div class="text-xs text-slate-500 font-medium">जम्मा बाली: <span class="font-bold text-slate-800">{{ crops.count }}</span></div>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+                <thead>
+                    <tr class="bg-slate-50 text-slate-500 text-xs uppercase border-b border-slate-100 font-bold">
+                        <th class="py-3 px-6">बालीको नाम</th>
+                        <th class="py-3 px-6">वैज्ञानिक नाम</th>
+                        <th class="py-3 px-6">वर्ग</th>
+                        <th class="py-3 px-6">पाक्ने अवधि</th>
+                        <th class="py-3 px-6 text-center">स्थिति</th>
+                        <th class="py-3 px-6 text-right">कार्यहरू (Actions)</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for crop in crops %}
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-4 px-6 font-bold text-slate-900">
+                            <div>{{ crop.name_ne }}</div>
+                            <div class="text-xs text-slate-400 font-medium">{{ crop.name_en }}</div>
+                        </td>
+                        <td class="py-4 px-6 italic text-slate-600">{{ crop.scientific_name }}</td>
+                        <td class="py-4 px-6">
+                            <span class="inline-block px-2.5 py-1 rounded-md text-xs font-semibold bg-agro-50 text-agro-800">
+                                {{ crop.category.name_ne|default:"-" }}
+                            </span>
+                        </td>
+                        <td class="py-4 px-6 text-slate-600">{{ crop.growth_duration_days_min }} - {{ crop.growth_duration_days_max }} दिन</td>
+                        <td class="py-4 px-6 text-center">
+                            <form action="{% url 'core:legacy_crop_toggle_publish' crop.id %}" method="post" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold transition {% if crop.is_published %}bg-agro-100 text-agro-800 hover:bg-agro-200{% else %}bg-slate-100 text-slate-600 hover:bg-slate-200{% endif %}" title="Click to toggle publish status">
+                                    <i class="fa-solid {% if crop.is_published %}fa-check mr-1{% else %}fa-eye-slash mr-1{% endif %}"></i>
+                                    {% if crop.is_published %}प्रकाशित{% else %}ड्राफ्ट{% endif %}
+                                </button>
+                            </form>
+                        </td>
+                        <td class="py-4 px-6 text-right space-x-2">
+                            <a href="{% url 'core:legacy_crop_edit' crop.id %}" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition">
+                                <i class="fa-solid fa-pen-to-square mr-1"></i>सम्पादन
+                            </a>
+                            <form action="{% url 'core:legacy_crop_delete' crop.id %}" method="post" class="inline" data-confirm="के तपाईं यो बाली हटाउन निश्चित हुनुहुन्छ?">
+                                {% csrf_token %}
+                                <button type="submit" class="inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-bold text-red-600 hover:bg-red-50 transition">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="py-10 text-center text-slate-400">कुनै बाली फेला परेन।</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

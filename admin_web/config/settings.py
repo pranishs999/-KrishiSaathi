@@ -6,7 +6,7 @@ Zero hardcoded database secrets or API credentials; all sensitive values come fr
 from pathlib import Path
 import os
 import sys
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -24,9 +24,81 @@ def _load_dotenv(env_path: Path) -> None:
 
 _load_dotenv(BASE_DIR / ".env")
 
+IS_VERCEL = os.environ.get("VERCEL", "").lower() in ("1", "true", "yes") or bool(os.environ.get("VERCEL_ENV"))
+IS_RENDER = bool(os.environ.get("RENDER"))
+IS_PRODUCTION = IS_VERCEL or IS_RENDER
+
+
+def _env_bool(name: str, default: bool = False) -> bool:
+    val = os.environ.get(name)
+    if val is None or not val.strip():
+        return default
+    return val.strip().lower() in ("1", "true", "yes", "on")
+
+
+def _env_int(name: str, default: int) -> int:
+    val = os.environ.get(name)
+    if val is None or not val.strip():
+        return default
+    return int(val.strip())
+
+
+def _safe_sslmode(raw_sslmode: str | None, host: str) -> str:
+    sslmode = (raw_sslmode or "require").strip().lower()
+    if not sslmode:
+        return "require"
+    # Never disable SSL verification for remote PostgreSQL hosts.
+    if sslmode == "disable" and host not in ("localhost", "127.0.0.1", "::1", ""):
+        return "require"
+    return sslmode
+
+
+def _finalize_postgres_config(
+    *,
+    engine: str,
+    name: str,
+    user: str,
+    password: str,
+    host: str,
+    port: str,
+    sslmode: str,
+) -> dict:
+    pool_mode = os.environ.get("DB_POOL_MODE", "").strip().lower()
+    is_transaction_pooler = port == "6543" or pool_mode == "transaction"
+    default_conn_max_age = 0 if (IS_VERCEL or is_transaction_pooler) else 60
+    conn_max_age = _env_int("DB_CONN_MAX_AGE", default_conn_max_age)
+    connect_timeout = _env_int("DB_CONNECT_TIMEOUT", 10)
+
+    disable_cursors_raw = os.environ.get("DB_DISABLE_SERVER_SIDE_CURSORS", "").strip().lower()
+    if disable_cursors_raw in ("1", "true", "yes", "on"):
+        disable_server_side_cursors = True
+    elif disable_cursors_raw in ("0", "false", "no", "off"):
+        disable_server_side_cursors = False
+    else:
+        disable_server_side_cursors = is_transaction_pooler
+
+    config = {
+        "ENGINE": engine or "django.db.backends.postgresql",
+        "NAME": name or "postgres",
+        "USER": user,
+        "PASSWORD": password,
+        "HOST": host,
+        "PORT": port or "5432",
+        "CONN_MAX_AGE": conn_max_age,
+        "OPTIONS": {
+            "sslmode": _safe_sslmode(sslmode, host),
+            "connect_timeout": connect_timeout,
+        },
+    }
+    if conn_max_age > 0:
+        config["CONN_HEALTH_CHECKS"] = True
+    if disable_server_side_cursors:
+        config["DISABLE_SERVER_SIDE_CURSORS"] = True
+    return config
+
 
 def _parse_database_url(db_url: str) -> dict:
-    if not db_url or db_url.startswith("sqlite:"):
+    if db_url.startswith("sqlite:"):
         sqlite_name = db_url.replace("sqlite:///", "") if db_url.startswith("sqlite:///") else str(BASE_DIR / "db.sqlite3")
         return {
             "ENGINE": "django.db.backends.sqlite3",
@@ -34,40 +106,84 @@ def _parse_database_url(db_url: str) -> dict:
         }
     parsed = urlparse(db_url)
     query = parse_qs(parsed.query)
-    sslmode = (query.get("sslmode") or ["require"])[0]
-    port = str(parsed.port or 5432)
-    # Transaction poolers (Supabase 6543) must not hold a session between requests.
-    conn_max_age = int(os.environ.get("DB_CONN_MAX_AGE", "0" if port == "6543" else "60"))
-    return {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": parsed.path.lstrip("/") or "postgres",
-        "USER": parsed.username or "postgres",
-        "PASSWORD": parsed.password or "",
-        "HOST": parsed.hostname or "localhost",
-        "PORT": port,
-        "CONN_MAX_AGE": conn_max_age,
-        "OPTIONS": {"sslmode": sslmode},
-    }
+    sslmode = (query.get("sslmode") or [os.environ.get("DB_SSLMODE") or "require"])[0]
+    host = parsed.hostname or ""
+    port = str(parsed.port or os.environ.get("DB_PORT") or "5432")
+    return _finalize_postgres_config(
+        engine=os.environ.get("DB_ENGINE", "django.db.backends.postgresql"),
+        name=parsed.path.lstrip("/") or os.environ.get("DB_NAME", "postgres"),
+        user=unquote(parsed.username) if parsed.username else os.environ.get("DB_USER", "postgres"),
+        password=unquote(parsed.password) if parsed.password else os.environ.get("DB_PASSWORD", ""),
+        host=host,
+        port=port,
+        sslmode=sslmode,
+    )
 
 
-DEBUG = os.environ.get("DJANGO_DEBUG", os.environ.get("DEBUG", "false")).lower() == "true"
-SECRET_KEY = os.environ.get(
-    "SECRET_KEY",
-    os.environ.get("DJANGO_SECRET_KEY", "dev-only-local-ephemeral-key-set-SECRET_KEY-in-prod"),
+def build_database_config(running_tests: bool = False) -> dict:
+    if running_tests:
+        return {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": str(BASE_DIR / "db.sqlite3"),
+        }
+
+    db_host = os.environ.get("DB_HOST", "").strip()
+    if db_host:
+        return _finalize_postgres_config(
+            engine=os.environ.get("DB_ENGINE", "django.db.backends.postgresql").strip(),
+            name=os.environ.get("DB_NAME", "postgres").strip(),
+            user=os.environ.get("DB_USER", "").strip(),
+            password=os.environ.get("DB_PASSWORD", ""),
+            host=db_host,
+            port=os.environ.get("DB_PORT", "5432").strip(),
+            sslmode=os.environ.get("DB_SSLMODE", "require").strip(),
+        )
+
+    db_url = os.environ.get("DATABASE_URL", "").strip()
+    if db_url:
+        return _parse_database_url(db_url)
+
+    return _finalize_postgres_config(
+        engine=os.environ.get("DB_ENGINE", "django.db.backends.postgresql").strip(),
+        name=os.environ.get("DB_NAME", "postgres").strip(),
+        user=os.environ.get("DB_USER", "").strip(),
+        password=os.environ.get("DB_PASSWORD", ""),
+        host="",
+        port=os.environ.get("DB_PORT", "5432").strip(),
+        sslmode=os.environ.get("DB_SSLMODE", "require").strip(),
+    )
+
+
+if IS_VERCEL and os.environ.get("VERCEL_ENV", "production") == "production":
+    DEBUG = False
+else:
+    DEBUG = _env_bool("DJANGO_DEBUG", _env_bool("DEBUG", False))
+
+SECRET_KEY = (
+    os.environ.get("SECRET_KEY")
+    or os.environ.get("DJANGO_SECRET_KEY")
+    or "django-insecure-dev-only-set-SECRET_KEY-in-env"
 )
 
 _allowed_env = os.environ.get("ALLOWED_HOSTS", "")
-ALLOWED_HOSTS = [h.strip() for h in _allowed_env.split(",") if h.strip()]
+ALLOWED_HOSTS = [h.strip() for h in _allowed_env.split(",") if h.strip() and h.strip() != "*"]
 _render_hostname = os.environ.get("RENDER_EXTERNAL_HOSTNAME", "").strip()
-for _default_host in (
+_vercel_url = os.environ.get("VERCEL_URL", "").strip().removeprefix("https://").removeprefix("http://").rstrip("/")
+_vercel_prod_url = os.environ.get("VERCEL_PROJECT_PRODUCTION_URL", "").strip().removeprefix("https://").removeprefix("http://").rstrip("/")
+_default_hosts = [
     "localhost",
     "127.0.0.1",
     "testserver",
     ".onrender.com",
     "bakaiya-krishi-saathi-cms.onrender.com",
     _render_hostname,
-):
-    if _default_host and _default_host not in ALLOWED_HOSTS:
+    _vercel_url,
+    _vercel_prod_url,
+]
+if IS_VERCEL:
+    _default_hosts.append(".vercel.app")
+for _default_host in _default_hosts:
+    if _default_host and _default_host != "*" and _default_host not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append(_default_host)
 
 INSTALLED_APPS = [
@@ -77,13 +193,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # Production English Admin CMS
-    "cms",
-    # Legacy app modules retained for compatibility
-    "apps.accounts",
-    "apps.crops",
-    "apps.guides",
-    "apps.dashboard",
+    # Single consolidated application
+    "core",
 ]
 
 MIDDLEWARE = [
@@ -95,7 +206,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "cms.auth_security.CmsSecurityHeadersMiddleware",
+    "core.services.CmsSecurityHeadersMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -103,7 +214,7 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
+        "DIRS": [],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -117,14 +228,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-# Database configuration: env-driven DATABASE_URL (Supabase PostgreSQL).
-# Automated tests stay on local SQLite so they never write to the cloud database.
+# Database configuration: discrete DB_* env vars (Supabase Session/Transaction Pooler)
+# with DATABASE_URL fallback. Automated tests stay on local SQLite so they never write to Supabase.
 _argv = " ".join(sys.argv)
 _running_tests = "test" in sys.argv or "pytest" in _argv
 DATABASES = {
-    "default": _parse_database_url(
-        "" if _running_tests else os.environ.get("DATABASE_URL", "")
-    )
+    "default": build_database_config(running_tests=_running_tests),
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -140,31 +249,42 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "/static/"
-STATICFILES_DIRS = [BASE_DIR / "static"] if (BASE_DIR / "static").exists() else []
+STATICFILES_DIRS = []
 STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 _csrf_env = os.environ.get("CSRF_TRUSTED_ORIGINS", "")
 CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in _csrf_env.split(",") if origin.strip()]
-if "https://*.onrender.com" not in CSRF_TRUSTED_ORIGINS:
-    CSRF_TRUSTED_ORIGINS.append("https://*.onrender.com")
+_default_csrf_origins = ["https://*.onrender.com"]
 if _render_hostname:
-    _render_origin = f"https://{_render_hostname}"
-    if _render_origin not in CSRF_TRUSTED_ORIGINS:
-        CSRF_TRUSTED_ORIGINS.append(_render_origin)
+    _default_csrf_origins.append(f"https://{_render_hostname}")
+if IS_VERCEL:
+    _default_csrf_origins.append("https://*.vercel.app")
+if _vercel_url:
+    _default_csrf_origins.append(f"https://{_vercel_url}")
+if _vercel_prod_url:
+    _default_csrf_origins.append(f"https://{_vercel_prod_url}")
+for _origin in _default_csrf_origins:
+    if _origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(_origin)
 
-if not DEBUG or os.environ.get("RENDER"):
+if not DEBUG or IS_VERCEL or IS_RENDER:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+if IS_PRODUCTION and not DEBUG:
+    SECURE_SSL_REDIRECT = _env_bool("SECURE_SSL_REDIRECT", True)
+    SECURE_HSTS_SECONDS = _env_int("SECURE_HSTS_SECONDS", 31536000)
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 if not DEBUG:
     STORAGES = {
         "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
         "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
     }
 
-LOGIN_URL = "cms:login"
-LOGIN_REDIRECT_URL = "cms:dashboard"
-LOGOUT_REDIRECT_URL = "cms:login"
+LOGIN_URL = "core:login"
+LOGIN_REDIRECT_URL = "core:dashboard"
+LOGOUT_REDIRECT_URL = "core:login"
 
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"

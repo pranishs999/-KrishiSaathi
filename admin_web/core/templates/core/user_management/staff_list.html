@@ -1,0 +1,92 @@
+{% extends "core/base.html" %}
+{% block title %}My Team • Bakaiya Krishi Saathi Admin{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">My Team</h1>
+            <p class="text-sm text-slate-600 mt-1">Manage your staff members</p>
+        </div>
+        <a href="{% url 'core:staff_create' %}" class="px-4 py-2 rounded-full bg-[#174D36] text-white text-sm font-semibold">
+            <i class="fa-solid fa-user-plus mr-2"></i>Add Staff Member
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="flex flex-wrap gap-2">
+        <a href="{% url 'core:staff_list' %}" class="px-3 py-1 rounded-full border {% if not status_filter %}bg-[#174D36] text-white{% else %}bg-white{% endif %}">All</a>
+        {% for key, label in status_choices %}
+        <a href="?status={{ key }}" class="px-3 py-1 rounded-full border {% if status_filter == key %}bg-[#174D36] text-white{% else %}bg-white{% endif %}">{{ label }}</a>
+        {% endfor %}
+    </div>
+
+    <!-- Team Members Table -->
+    <div class="bg-white rounded-xl border shadow-sm overflow-x-auto">
+        <table class="w-full text-sm text-left">
+            <thead class="text-xs uppercase text-slate-500 border-b bg-slate-50">
+                <tr>
+                    <th class="px-4 py-3">Staff Member</th>
+                    <th class="px-4 py-3">Contact</th>
+                    <th class="px-4 py-3">Content Stats</th>
+                    <th class="px-4 py-3">Status</th>
+                    <th class="px-4 py-3">Joined</th>
+                    <th class="px-4 py-3">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y">
+                {% for staff in team_members %}
+                <tr>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-sm font-semibold">
+                                {{ staff.full_name|make_list|first }}
+                            </div>
+                            <div>
+                                <div class="font-semibold text-slate-900">{{ staff.full_name }}</div>
+                                <div class="text-xs text-slate-500">{{ staff.user.username }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 text-xs text-slate-600">
+                        <div>{{ staff.email }}</div>
+                        {% if staff.mobile_number %}<div>{{ staff.mobile_number }}</div>{% endif %}
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="text-xs text-slate-600">
+                            <div>Crops: <span class="font-semibold text-slate-900">{{ CropEntry.objects.filter(created_by=staff.user).count }}</span></div>
+                            <div>Livestock: <span class="font-semibold text-slate-900">{{ LivestockEntry.objects.filter(created_by=staff.user).count }}</span></div>
+                            <div>Guides: <span class="font-semibold text-slate-900">{{ Guide.objects.filter(created_by=staff.user).count }}</span></div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-1 rounded-full text-xs font-semibold
+                            {% if staff.status == 'active' %}bg-emerald-100 text-emerald-800
+                            {% elif staff.status == 'suspended' %}bg-amber-100 text-amber-800
+                            {% elif staff.status == 'inactive' %}bg-slate-100 text-slate-600
+                            {% else %}bg-red-100 text-red-800{% endif %}">
+                            {{ staff.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 text-xs text-slate-500">{{ staff.created_at|date:"M d, Y" }}</td>
+                    <td class="px-4 py-3">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <a href="{% url 'core:staff_edit' staff.id %}" class="px-2.5 py-1 border rounded text-xs hover:bg-slate-100">Edit</a>
+                            {% if staff.status == 'active' %}
+                            <a href="{% url 'core:staff_suspend' staff.id %}" class="px-2.5 py-1 rounded bg-amber-100 text-amber-800 text-xs hover:bg-amber-200">Suspend</a>
+                            {% elif staff.status == 'suspended' %}
+                            <a href="{% url 'core:staff_reactivate' staff.id %}" class="px-2.5 py-1 rounded bg-emerald-100 text-emerald-800 text-xs hover:bg-emerald-200">Reactivate</a>
+                            {% elif staff.status == 'inactive' %}
+                            <a href="{% url 'core:staff_reactivate' staff.id %}" class="px-2.5 py-1 rounded bg-emerald-100 text-emerald-800 text-xs hover:bg-emerald-200">Reactivate</a>
+                            {% endif %}
+                            <a href="{% url 'core:staff_deactivate' staff.id %}" class="px-2.5 py-1 rounded bg-red-100 text-red-800 text-xs hover:bg-red-200">Deactivate</a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="px-4 py-8 text-center text-slate-500">No team members yet. <a href="{% url 'core:staff_create' %}" class="text-[#174D36] hover:underline">Add your first staff member</a></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

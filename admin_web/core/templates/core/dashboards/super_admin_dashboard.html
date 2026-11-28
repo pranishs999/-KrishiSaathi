@@ -1,0 +1,167 @@
+{% extends "core/base.html" %}
+{% block title %}Super Admin Dashboard • Bakaiya Krishi Saathi Admin{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">Super Admin Dashboard</h1>
+            <p class="text-sm text-slate-600 mt-1">Complete system overview and management</p>
+        </div>
+    </div>
+
+    <!-- User Management Stats -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-xl border shadow-sm">
+            <div class="text-xs font-semibold uppercase text-slate-500">Staff Managers</div>
+            <div class="text-2xl font-bold mt-1">{{ total_staff_managers }}</div>
+            <div class="text-xs text-slate-600 mt-1">
+                <span class="text-emerald-600 font-semibold">{{ active_staff_managers }} active</span> •
+                <span class="text-amber-600 font-semibold">{{ suspended_staff_managers }} suspended</span>
+            </div>
+        </div>
+        <div class="bg-white p-5 rounded-xl border shadow-sm">
+            <div class="text-xs font-semibold uppercase text-slate-500">Staff Members</div>
+            <div class="text-2xl font-bold mt-1">{{ total_staff }}</div>
+            <div class="text-xs text-slate-600 mt-1">
+                <span class="text-emerald-600 font-semibold">{{ active_staff }} active</span> •
+                <span class="text-amber-600 font-semibold">{{ suspended_staff }} suspended</span>
+            </div>
+        </div>
+        <div class="bg-white p-5 rounded-xl border shadow-sm">
+            <div class="text-xs font-semibold uppercase text-slate-500">Registered Farmers</div>
+            <div class="text-2xl font-bold mt-1">{{ total_farmers }}</div>
+            <div class="text-xs text-slate-600 mt-1">Synced from Android app</div>
+        </div>
+        <div class="bg-white p-5 rounded-xl border shadow-sm">
+            <div class="text-xs font-semibold uppercase text-slate-500">Content Items</div>
+            <div class="text-2xl font-bold mt-1">{{ total_crops|add:total_livestock|add:total_guides }}</div>
+            <div class="text-xs text-slate-600 mt-1">Crops: {{ total_crops }} • Livestock: {{ total_livestock }} • Guides: {{ total_guides }}</div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Published Content -->
+        <div class="lg:col-span-2 bg-white p-5 rounded-xl border shadow-sm">
+            <h2 class="text-lg font-bold text-slate-900 mb-4">Published Content Overview</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-emerald-50 p-4 rounded-lg border border-emerald-100">
+                    <div class="text-xs font-semibold uppercase text-emerald-700">Crops</div>
+                    <div class="text-2xl font-bold text-emerald-800">{{ published_crops }} / {{ total_crops }}</div>
+                    <div class="text-xs text-emerald-600">{{ crop_review }} in review</div>
+                </div>
+                <div class="bg-emerald-50 p-4 rounded-lg border border-emerald-100">
+                    <div class="text-xs font-semibold uppercase text-emerald-700">Livestock</div>
+                    <div class="text-2xl font-bold text-emerald-800">{{ published_livestock }} / {{ total_livestock }}</div>
+                    <div class="text-xs text-emerald-600">{{ livestock_review }} in review</div>
+                </div>
+                <div class="bg-emerald-50 p-4 rounded-lg border border-emerald-100">
+                    <div class="text-xs font-semibold uppercase text-emerald-700">Guides</div>
+                    <div class="text-2xl font-bold text-emerald-800">{{ published_guides }} / {{ total_guides }}</div>
+                    <div class="text-xs text-emerald-600">Published</div>
+                </div>
+            </div>
+
+            <div class="mt-6 pt-4 border-t border-slate-100">
+                <h3 class="text-sm font-semibold text-slate-700 mb-3">Media & Helpline</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                        <div class="text-xs font-semibold uppercase text-blue-700">Media Assets</div>
+                        <div class="text-2xl font-bold text-blue-800">{{ total_media }}</div>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-lg border border-purple-100">
+                        <div class="text-xs font-semibold uppercase text-purple-700">Helpline Contacts</div>
+                        <div class="text-2xl font-bold text-purple-800">{{ total_helpline }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Staff Managers & Activity -->
+        <div class="space-y-6">
+            <div class="bg-white p-5 rounded-xl border shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-bold text-slate-900">Recent Staff Managers</h2>
+                    <a href="{% url 'core:staff_manager_list' %}" class="text-xs font-bold text-[#174D36] hover:text-emerald-900">View All →</a>
+                </div>
+                {% if recent_staff_managers %}
+                <div class="space-y-3">
+                    {% for manager in recent_staff_managers %}
+                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-[#174D36] text-white flex items-center justify-center text-sm font-semibold">
+                                {{ manager.full_name|make_list|first }}
+                            </div>
+                            <div>
+                                <div class="font-semibold text-slate-900">{{ manager.full_name }}</div>
+                                <div class="text-xs text-slate-500">{{ manager.user.username }} • {{ manager.email }}</div>
+                            </div>
+                        </div>
+                        <span class="px-2 py-1 rounded-full text-xs font-semibold
+                            {% if manager.status == 'active' %}bg-emerald-100 text-emerald-800
+                            {% elif manager.status == 'suspended' %}bg-amber-100 text-amber-800
+                            {% else %}bg-slate-100 text-slate-600{% endif %}">
+                            {{ manager.get_status_display }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center text-slate-500 py-8">No staff managers created yet.</div>
+                {% endif %}
+            </div>
+
+            <div class="bg-white p-5 rounded-xl border shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-bold text-slate-900">Recent System Activity</h2>
+                    <a href="{% url 'core:staff_manager_list' %}" class="text-xs font-bold text-[#174D36] hover:text-emerald-900">View All Logs →</a>
+                </div>
+                {% if recent_logs %}
+                <div class="space-y-3">
+                    {% for log in recent_logs %}
+                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold">
+                                <i class="fa-solid fa-clock"></i>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-slate-900">{{ log.action|replace:"_"," "|title }}</div>
+                                <div class="text-xs text-slate-500">{{ log.target_type }}: {{ log.target_id }}</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xs text-slate-500">{{ log.created_at|date:"M d, H:i" }}</div>
+                            <div class="text-xs text-slate-400">{{ log.actor.username|default:"System" }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center text-slate-500 py-8">No recent activity.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="bg-white p-5 rounded-xl border shadow-sm">
+        <h2 class="text-lg font-bold text-slate-900 mb-4">Quick Actions</h2>
+        <div class="flex flex-wrap gap-3">
+            <a href="{% url 'core:staff_manager_create' %}" class="px-4 py-2.5 rounded-lg bg-[#174D36] text-white text-sm font-semibold hover:bg-emerald-900">
+                <i class="fa-solid fa-user-plus mr-2"></i>Add Staff Manager
+            </a>
+            <a href="{% url 'core:crop_create' %}" class="px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50">
+                <i class="fa-solid fa-leaf mr-2"></i>Add Crop
+            </a>
+            <a href="{% url 'core:legacy_crop_create' %}" class="px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50">
+                <i class="fa-solid fa-seedling mr-2"></i>Add Legacy Crop
+            </a>
+            <a href="{% url 'core:legacy_guide_create' %}" class="px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50">
+                <i class="fa-solid fa-book mr-2"></i>Add Guide
+            </a>
+            <a href="{% url 'core:media_library' %}" class="px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50">
+                <i class="fa-solid fa-image mr-2"></i>Upload Media
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

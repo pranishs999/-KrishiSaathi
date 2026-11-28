@@ -1,0 +1,151 @@
+{% extends "core/base.html" %}
+{% block title %}Staff Manager Dashboard • Bakaiya Krishi Saathi Admin{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">My Team Dashboard</h1>
+            <p class="text-sm text-slate-600 mt-1">Team overview and content management</p>
+        </div>
+        <a href="{% url 'core:staff_create' %}" class="px-4 py-2 rounded-full bg-[#174D36] text-white text-sm font-semibold mt-4 sm:mt-0">
+            <i class="fa-solid fa-user-plus mr-2"></i>Add Staff Member
+        </a>
+    </div>
+
+    <!-- Team Stats -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-xl border shadow-sm">
+            <div class="text-xs font-semibold uppercase text-slate-500">Team Members</div>
+            <div class="text-2xl font-bold mt-1">{{ total_team_members }}</div>
+            <div class="text-xs text-slate-600 mt-1">
+                <span class="text-emerald-600 font-semibold">{{ active_team_members }} active</span> •
+                <span class="text-amber-600 font-semibold">{{ suspended_team_members }} suspended</span>
+            </div>
+        </div>
+        <div class="bg-white p-5 rounded-xl border shadow-sm">
+            <div class="text-xs font-semibold uppercase text-slate-500">Team Crops</div>
+            <div class="text-2xl font-bold mt-1">{{ team_crops }}</div>
+            <div class="text-xs text-slate-600 mt-1">{{ team_published_crops }} published</div>
+        </div>
+        <div class="bg-white p-5 rounded-xl border shadow-sm">
+            <div class="text-xs font-semibold uppercase text-slate-500">Team Livestock</div>
+            <div class="text-2xl font-bold mt-1">{{ team_livestock }}</div>
+            <div class="text-xs text-slate-600 mt-1">{{ team_published_livestock }} published</div>
+        </div>
+        <div class="bg-white p-5 rounded-xl border shadow-sm">
+            <div class="text-xs font-semibold uppercase text-slate-500">Team Guides</div>
+            <div class="text-2xl font-bold mt-1">{{ team_guides }}</div>
+            <div class="text-xs text-slate-600 mt-1">{{ team_published_guides }} published</div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Team Members -->
+        <div class="lg:col-span-2 bg-white p-5 rounded-xl border shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-slate-900">Team Members</h2>
+                <a href="{% url 'core:staff_list' %}" class="text-xs font-bold text-[#174D36] hover:text-emerald-900">Manage All →</a>
+            </div>
+            {% if team_members %}
+            <div class="space-y-3">
+                {% for member in team_members %}
+                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-sm font-semibold">
+                            {{ member.full_name|make_list|first }}
+                        </div>
+                        <div>
+                            <div class="font-semibold text-slate-900">{{ member.full_name }}</div>
+                            <div class="text-xs text-slate-500">{{ member.user.username }} • {{ member.email }}</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="px-2 py-1 rounded-full text-xs font-semibold
+                            {% if member.status == 'active' %}bg-emerald-100 text-emerald-800
+                            {% elif member.status == 'suspended' %}bg-amber-100 text-amber-800
+                            {% elif member.status == 'inactive' %}bg-slate-100 text-slate-600
+                            {% else %}bg-red-100 text-red-800{% endif %}">
+                            {{ member.get_status_display }}
+                        </span>
+                        <a href="{% url 'core:staff_edit' member.id %}" class="text-xs text-[#174D36] hover:text-emerald-900">Edit</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center text-slate-500 py-8">
+                <i class="fa-solid fa-users text-3xl text-slate-300 mb-2"></i>
+                <p class="text-slate-500">No team members yet. <a href="{% url 'core:staff_create' %}" class="text-[#174D36] hover:underline">Add your first staff member</a></p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Quick Stats & Activity -->
+        <div class="space-y-6">
+            <div class="bg-white p-5 rounded-xl border shadow-sm">
+                <h2 class="text-lg font-bold text-slate-900 mb-4">Team Media & Content</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                        <div class="text-xs font-semibold uppercase text-slate-500">Media Assets</div>
+                        <div class="text-2xl font-bold text-slate-900">{{ team_media }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl border shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-bold text-slate-900">Recent Team Activity</h2>
+                </div>
+                {% if recent_team_logs %}
+                <div class="space-y-3">
+                    {% for log in recent_team_logs %}
+                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold">
+                                <i class="fa-solid fa-clock"></i>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-slate-900">{{ log.action|replace:"_"," "|title }}</div>
+                                <div class="text-xs text-slate-500">{{ log.target_type }}: {{ log.target_id }}</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xs text-slate-500">{{ log.created_at|date:"M d, H:i" }}</div>
+                            <div class="text-xs text-slate-400">{{ log.actor.username|default:"System" }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center text-slate-500 py-8">No recent team activity.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="bg-white p-5 rounded-xl border shadow-sm">
+        <h2 class="text-lg font-bold text-slate-900 mb-4">Quick Actions</h2>
+        <div class="flex flex-wrap gap-3">
+            <a href="{% url 'core:staff_create' %}" class="px-4 py-2.5 rounded-lg bg-[#174D36] text-white text-sm font-semibold hover:bg-emerald-900">
+                <i class="fa-solid fa-user-plus mr-2"></i>Add Staff Member
+            </a>
+            <a href="{% url 'core:crop_create' %}" class="px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50">
+                <i class="fa-solid fa-leaf mr-2"></i>Add Crop
+            </a>
+            <a href="{% url 'core:legacy_crop_create' %}" class="px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50">
+                <i class="fa-solid fa-seedling mr-2"></i>Add Legacy Crop
+            </a>
+            <a href="{% url 'core:legacy_guide_create' %}" class="px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50">
+                <i class="fa-solid fa-book mr-2"></i>Add Guide
+            </a>
+            <a href="{% url 'core:media_library' %}" class="px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50">
+                <i class="fa-solid fa-image mr-2"></i>Upload Media
+            </a>
+            <a href="{% url 'core:helpline_list' %}" class="px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50">
+                <i class="fa-solid fa-phone mr-2"></i>Manage Helpline
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

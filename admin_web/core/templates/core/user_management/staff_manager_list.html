@@ -1,0 +1,88 @@
+{% extends "core/base.html" %}
+{% block title %}Staff Managers • Bakaiya Krishi Saathi Admin{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">Staff Managers</h1>
+            <p class="text-sm text-slate-600 mt-1">Manage all staff manager accounts</p>
+        </div>
+        <a href="{% url 'core:staff_manager_create' %}" class="px-4 py-2 rounded-full bg-[#174D36] text-white text-sm font-semibold">
+            <i class="fa-solid fa-user-plus mr-2"></i>Add Staff Manager
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="flex flex-wrap gap-2">
+        <a href="{% url 'core:staff_manager_list' %}" class="px-3 py-1 rounded-full border {% if not status_filter %}bg-[#174D36] text-white{% else %}bg-white{% endif %}">All</a>
+        {% for key, label in status_choices %}
+        <a href="?status={{ key }}" class="px-3 py-1 rounded-full border {% if status_filter == key %}bg-[#174D36] text-white{% else %}bg-white{% endif %}">{{ label }}</a>
+        {% endfor %}
+    </div>
+
+    <!-- Staff Managers Table -->
+    <div class="bg-white rounded-xl border shadow-sm overflow-x-auto">
+        <table class="w-full text-sm text-left">
+            <thead class="text-xs uppercase text-slate-500 border-b bg-slate-50">
+                <tr>
+                    <th class="px-4 py-3">Manager</th>
+                    <th class="px-4 py-3">Contact</th>
+                    <th class="px-4 py-3">Team Size</th>
+                    <th class="px-4 py-3">Status</th>
+                    <th class="px-4 py-3">Created</th>
+                    <th class="px-4 py-3">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y">
+                {% for manager in managers %}
+                <tr>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-[#174D36] text-white flex items-center justify-center text-sm font-semibold">
+                                {{ manager.full_name|make_list|first }}
+                            </div>
+                            <div>
+                                <div class="font-semibold text-slate-900">{{ manager.full_name }}</div>
+                                <div class="text-xs text-slate-500">{{ manager.user.username }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 text-xs text-slate-600">
+                        <div>{{ manager.email }}</div>
+                        {% if manager.mobile_number %}<div>{{ manager.mobile_number }}</div>{% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        <span class="px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                            {{ manager.managed_staff.count }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-1 rounded-full text-xs font-semibold
+                            {% if manager.status == 'active' %}bg-emerald-100 text-emerald-800
+                            {% elif manager.status == 'suspended' %}bg-amber-100 text-amber-800
+                            {% elif manager.status == 'inactive' %}bg-slate-100 text-slate-600
+                            {% else %}bg-red-100 text-red-800{% endif %}">
+                            {{ manager.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 text-xs text-slate-500">{{ manager.created_at|date:"M d, Y" }}</td>
+                    <td class="px-4 py-3">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <a href="{% url 'core:staff_manager_edit' manager.id %}" class="px-2.5 py-1 border rounded text-xs hover:bg-slate-100">Edit</a>
+                            {% if manager.status == 'active' %}
+                            <a href="{% url 'core:staff_manager_suspend' manager.id %}" class="px-2.5 py-1 rounded bg-amber-100 text-amber-800 text-xs hover:bg-amber-200">Suspend</a>
+                            {% elif manager.status == 'suspended' %}
+                            <a href="{% url 'core:staff_manager_reactivate' manager.id %}" class="px-2.5 py-1 rounded bg-emerald-100 text-emerald-800 text-xs hover:bg-emerald-200">Reactivate</a>
+                            {% endif %}
+                            <a href="{% url 'core:staff_manager_archive' manager.id %}" class="px-2.5 py-1 rounded bg-red-100 text-red-800 text-xs hover:bg-red-200">Archive</a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="px-4 py-8 text-center text-slate-500">No staff managers found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

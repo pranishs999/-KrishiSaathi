@@ -1,0 +1,23 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Bakaiya Krishi Saathi Admin{% endblock %}</title>
+    <link rel="icon" type="image/svg+xml" href="{% static 'core/icons/krishi-saathi.svg' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'core/css/app.css' %}">
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50 text-slate-900">
+    {% include "core/components/navbar.html" %}
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-6">
+        {% include "core/components/messages.html" %}
+        {% block content %}{% endblock %}
+    </main>
+
+    {% include "core/components/footer.html" %}
+    <script src="{% static 'core/js/app.js' %}"></script>
+</body>
+</html>
