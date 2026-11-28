@@ -7,6 +7,7 @@ from pathlib import Path
 import os
 import sys
 from urllib.parse import parse_qs, unquote, urlparse
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -127,6 +128,19 @@ def build_database_config(running_tests: bool = False) -> dict:
             "NAME": str(BASE_DIR / "db.sqlite3"),
         }
 
+    # Require DB configuration for production/non-test environments
+    # Check for required environment variables
+    required_vars = ["DB_NAME", "DB_USER", "DB_PASSWORD"]
+    missing_vars = [var for var in required_vars if not os.environ.get(var, "").strip()]
+    
+    if missing_vars and not os.environ.get("DATABASE_URL", "").strip():
+        # Build a helpful error message
+        raise ImproperlyConfigured(
+            f"Missing required database environment variables: {', '.join(missing_vars)}. "
+            f"Set DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_SSLMODE "
+            f"or provide DATABASE_URL. For Vercel, use Transaction Pooler (port 6543)."
+        )
+
     db_host = os.environ.get("DB_HOST", "").strip()
     if db_host:
         return _finalize_postgres_config(
@@ -143,6 +157,7 @@ def build_database_config(running_tests: bool = False) -> dict:
     if db_url:
         return _parse_database_url(db_url)
 
+    # Fallback with validation
     return _finalize_postgres_config(
         engine=os.environ.get("DB_ENGINE", "django.db.backends.postgresql").strip(),
         name=os.environ.get("DB_NAME", "postgres").strip(),
@@ -170,6 +185,10 @@ ALLOWED_HOSTS = [h.strip() for h in _allowed_env.split(",") if h.strip() and h.s
 _render_hostname = os.environ.get("RENDER_EXTERNAL_HOSTNAME", "").strip()
 _vercel_url = os.environ.get("VERCEL_URL", "").strip().removeprefix("https://").removeprefix("http://").rstrip("/")
 _vercel_prod_url = os.environ.get("VERCEL_PROJECT_PRODUCTION_URL", "").strip().removeprefix("https://").removeprefix("http://").rstrip("/")
+
+# Explicitly allow production domain
+_production_domain = "krishi-saathi-phi.vercel.app"
+
 _default_hosts = [
     "localhost",
     "127.0.0.1",
@@ -179,6 +198,7 @@ _default_hosts = [
     _render_hostname,
     _vercel_url,
     _vercel_prod_url,
+    _production_domain,
 ]
 if IS_VERCEL:
     _default_hosts.append(".vercel.app")
@@ -256,15 +276,19 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 _csrf_env = os.environ.get("CSRF_TRUSTED_ORIGINS", "")
 CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in _csrf_env.split(",") if origin.strip()]
-_default_csrf_origins = ["https://*.onrender.com"]
+_production_domain = "krishi-saathi-phi.vercel.app"
+_default_csrf_origins = [
+    "https://*.onrender.com",
+    f"https://{_production_domain}",
+]
 if _render_hostname:
     _default_csrf_origins.append(f"https://{_render_hostname}")
-if IS_VERCEL:
-    _default_csrf_origins.append("https://*.vercel.app")
 if _vercel_url:
     _default_csrf_origins.append(f"https://{_vercel_url}")
 if _vercel_prod_url:
     _default_csrf_origins.append(f"https://{_vercel_prod_url}")
+if _vercel_prod_url != _production_domain:
+    _default_csrf_origins.append(f"https://{_production_domain}")
 for _origin in _default_csrf_origins:
     if _origin not in CSRF_TRUSTED_ORIGINS:
         CSRF_TRUSTED_ORIGINS.append(_origin)
@@ -295,3 +319,51 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Logging configuration
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "style": "{",
+        },
+        "simple": {
+            "format": "{levelname} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO" if not DEBUG else "DEBUG",
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "django.request": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "django.db.backends": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "core": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+}

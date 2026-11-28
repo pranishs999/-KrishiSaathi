@@ -75,11 +75,6 @@ urlpatterns = [
     path("cms/profile/", views.my_profile, name="my_profile"),
     path("cms/profile/edit/", views.edit_my_profile, name="edit_my_profile"),
     
-    # Public Read-Only Verified Content APIs for Farmer Clients
-    path("api/v1/public/crops/", views.public_crops_api, name="public_crops_api"),
-    path("api/v1/public/livestock/", views.public_livestock_api, name="public_livestock_api"),
-    path("api/v1/public/helpline/", views.public_helpline_api, name="public_helpline_api"),
-    
     # Legacy Portal Routes (preserved for compatibility)
     path("accounts/login/", views.legacy_login, name="legacy_login"),
     path("accounts/logout/", views.legacy_logout, name="legacy_logout"),
